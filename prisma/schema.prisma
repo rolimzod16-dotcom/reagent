@@ -1,0 +1,232 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Category {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  nameRu        String
+  nameEn        String
+  descriptionRu String?
+  descriptionEn String?
+  image         String?
+  parentId      String?
+  parent        Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryTree")
+  sortOrder     Int        @default(0)
+  published     Boolean    @default(true)
+  products      Product[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([published])
+}
+
+model Manufacturer {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  descriptionRu String?
+  descriptionEn String?
+  website       String?
+  published     Boolean   @default(true)
+  products      Product[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Product {
+  id              String                  @id @default(cuid())
+  slug            String                  @unique
+  sku             String?
+  model           String?
+  nameRu          String
+  nameEn          String
+  shortRu         String?
+  shortEn         String?
+  descriptionRu   String?
+  descriptionEn   String?
+  applicationsRu  String?
+  applicationsEn  String?
+  published       Boolean                 @default(true)
+  featured        Boolean                 @default(false)
+  /** seed = from build-catalog; admin = created in admin panel */
+  source          String                  @default("seed")
+  categoryId      String
+  category        Category                @relation(fields: [categoryId], references: [id])
+  manufacturerId  String?
+  manufacturer    Manufacturer?           @relation(fields: [manufacturerId], references: [id])
+  images          ProductImage[]
+  documents       ProductDocument[]
+  specifications  ProductSpecification[]
+  inquiries       Inquiry[]
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+
+  @@index([categoryId])
+  @@index([manufacturerId])
+  @@index([sku])
+  @@index([published])
+  @@index([source])
+  @@index([published, categoryId])
+  @@index([published, manufacturerId])
+  @@index([published, featured])
+  @@index([published, createdAt])
+  @@index([published, updatedAt])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  altRu     String?
+  altEn     String?
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+model ProductDocument {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  titleRu   String
+  titleEn   String
+  url       String
+  fileType  String  @default("pdf")
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+model ProductSpecification {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  labelRu   String
+  labelEn   String
+  valueRu   String
+  valueEn   String
+  sortOrder Int     @default(0)
+
+  @@index([productId])
+}
+
+model Inquiry {
+  id          String    @id @default(cuid())
+  name        String
+  company     String?
+  phone       String
+  email       String
+  quantity    String?
+  message     String?
+  city        String?
+  urgency     String    @default("normal") // normal | urgent
+  itemsJson   String?   // JSON: [{productId, productName, sku, qty}]
+  productId   String?
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String?
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  /** new | processing | confirmed | shipped | delivered | cancelled | rejected */
+  status      String    @default("new")
+  statusHistory String? // JSON: [{status, at, note?}]
+  trackingNumber String?
+  notes       String?
+  locale      String    @default("ru")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
+  @@index([email])
+}
+
+/** B2B client accounts (register / login / personal cabinet) */
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  company      String?
+  phone        String?
+  city         String?
+  locale       String    @default("ru")
+  role         String    @default("client") // client | admin
+  inquiries    Inquiry[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  titleRu     String
+  titleEn     String
+  excerptRu   String?
+  excerptEn   String?
+  bodyRu      String
+  bodyEn      String
+  published   Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+}
+
+/** Singleton site contacts (id = "main") */
+model SiteSettings {
+  id        String   @id @default("main")
+  email     String
+  phone     String
+  addressRu String   @default("")
+  addressEn String   @default("")
+  hoursRu   String   @default("")
+  hoursEn   String   @default("")
+  noteRu    String   @default("")
+  noteEn    String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+/** Editable pages: about, etc. */
+model CmsPage {
+  key       String   @id
+  titleRu   String
+  titleEn   String
+  bodyRu    String
+  bodyEn    String
+  updatedAt DateTime @updatedAt
+}
+
+model Solution {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  titleRu     String
+  titleEn     String
+  bodyRu      String
+  bodyEn      String
+  catalogSlug String?
+  sortOrder   Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
