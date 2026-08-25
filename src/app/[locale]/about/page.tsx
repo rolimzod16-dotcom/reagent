@@ -80,16 +80,24 @@ export default async function AboutPage({
           {locale === "ru" ? (
             <>
               Юридическое лицо:{" "}
-              <strong className="text-slate-900">{SITE_LEGAL.nameRu}</strong> /{" "}
-              {SITE_LEGAL.nameTj}. Каталог лабораторных реагентов формируется
-              совместно с партнёром {CATALOG_PARTNER.name}.
+              <strong className="text-slate-900">
+                {settings.legalNameRu || SITE_LEGAL.nameRu}
+              </strong>{" "}
+              / {settings.legalNameTj || SITE_LEGAL.nameTj}
+              {settings.inn ? ` · ИНН ${settings.inn}` : ""}. Каталог
+              лабораторных реагентов формируется совместно с партнёром{" "}
+              {CATALOG_PARTNER.name}.
             </>
           ) : (
             <>
               Legal entity:{" "}
-              <strong className="text-slate-900">{SITE_LEGAL.nameEn}</strong> (
-              {SITE_LEGAL.shortEn}). Laboratory reagents catalog is offered in
-              partnership with {CATALOG_PARTNER.name}.
+              <strong className="text-slate-900">
+                {settings.legalNameEn || SITE_LEGAL.nameEn}
+              </strong>{" "}
+              ({SITE_LEGAL.shortEn})
+              {settings.inn ? ` · TIN ${settings.inn}` : ""}. Laboratory
+              reagents catalog is offered in partnership with{" "}
+              {CATALOG_PARTNER.name}.
             </>
           )}
         </p>
@@ -97,7 +105,7 @@ export default async function AboutPage({
           {locale === "ru" ? "Контакты" : "Contact"}
         </h2>
         <p>
-          {legalLine(locale)}
+          {legalLine(locale, settings)}
           <br />
           Email:{" "}
           <a

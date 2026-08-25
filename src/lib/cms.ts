@@ -84,12 +84,17 @@ export async function ensureCmsDefaults() {
       id: "main",
       email: SITE_EMAIL,
       phone: SITE_PHONE,
+      phone2: "",
       addressRu: "Душанбе, Таджикистан",
       addressEn: "Dushanbe, Tajikistan",
       hoursRu: "Пн–Пт, 9:00–18:00",
       hoursEn: "Mon–Fri, 9:00–18:00",
       noteRu: "Цена по запросу. Ответим в рабочее время.",
       noteEn: "Price on request. We reply during business hours.",
+      legalNameRu: "ООО «Тиби Хуршед»",
+      legalNameTj: "ЧДММ «Тиби Хуршед»",
+      legalNameEn: "Tibi Khurshed LLC",
+      inn: "",
     },
     update: {},
   });
@@ -116,12 +121,17 @@ const FALLBACK_SETTINGS = {
   id: "main",
   email: SITE_EMAIL,
   phone: SITE_PHONE,
+  phone2: "",
   addressRu: "Душанбе, Таджикистан",
   addressEn: "Dushanbe, Tajikistan",
   hoursRu: "Пн–Пт, 9:00–18:00",
   hoursEn: "Mon–Fri, 9:00–18:00",
   noteRu: "",
   noteEn: "",
+  legalNameRu: "ООО «Тиби Хуршед»",
+  legalNameTj: "ЧДММ «Тиби Хуршед»",
+  legalNameEn: "Tibi Khurshed LLC",
+  inn: "",
   updatedAt: new Date(),
 };
 
@@ -138,7 +148,7 @@ export function getSiteSettings() {
         return FALLBACK_SETTINGS;
       }
     },
-    ["site-settings-v1"],
+    ["site-settings-v3"],
     { revalidate: 60, tags: ["cms"] }
   )();
 }

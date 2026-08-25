@@ -14,19 +14,35 @@ import { BrandLogo } from "./BrandLogo";
 export function Footer({
   locale,
   phone,
+  phone2,
   email,
   address,
+  legalNameRu,
+  legalNameTj,
+  legalNameEn,
+  inn,
 }: {
   locale: Locale;
   phone?: string;
+  phone2?: string;
   email?: string;
   address?: string;
+  legalNameRu?: string;
+  legalNameTj?: string;
+  legalNameEn?: string;
+  inn?: string;
 }) {
   const displayPhone = phone || SITE_PHONE;
   const displayEmail = email || SITE_EMAIL;
   const tel = phoneHref(displayPhone);
   const displayAddress =
     address || (locale === "ru" ? "Душанбе / регионы" : "Dushanbe / regions");
+  const legal = legalLine(locale, {
+    legalNameRu,
+    legalNameTj,
+    legalNameEn,
+    inn,
+  });
   return (
     <footer className="mt-auto bg-green-deep text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
@@ -107,6 +123,17 @@ export function Footer({
                 {displayPhone}
               </a>
             </li>
+            {phone2?.trim() ? (
+              <li className="flex items-start gap-2">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-green-light" />
+                <a
+                  href={`tel:${phoneHref(phone2)}`}
+                  className="hover:text-white"
+                >
+                  {phone2}
+                </a>
+              </li>
+            ) : null}
             <li className="flex items-start gap-2">
               <Mail className="mt-0.5 h-4 w-4 shrink-0 text-green-light" />
               <a href={`mailto:${displayEmail}`} className="hover:text-white">
@@ -136,7 +163,7 @@ export function Footer({
             {SITE_DOMAIN}
             <br className="sm:hidden" />
             <span className="sm:before:content-['·_']">
-              {legalLine(locale)}
+              {legal}
             </span>
             . {t(locale, "footer_rights")}
           </p>

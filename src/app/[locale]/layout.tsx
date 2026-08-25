@@ -26,13 +26,23 @@ export default async function LocaleLayout({
 
   return (
     <div className="flex min-h-full flex-col" lang={locale}>
-      <Header locale={locale} phone={settings.phone} email={settings.email} />
+      <Header
+        locale={locale}
+        phone={settings.phone}
+        phone2={settings.phone2}
+        email={settings.email}
+      />
       <main className="flex-1">{children}</main>
       <Footer
         locale={locale}
         phone={settings.phone}
+        phone2={settings.phone2}
         email={settings.email}
         address={address}
+        legalNameRu={settings.legalNameRu}
+        legalNameTj={settings.legalNameTj}
+        legalNameEn={settings.legalNameEn}
+        inn={settings.inn}
       />
     </div>
   );

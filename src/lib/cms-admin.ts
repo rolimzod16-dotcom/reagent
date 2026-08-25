@@ -15,6 +15,8 @@ export function bustCms() {
     revalidatePath("/en/articles", "layout");
     revalidatePath("/ru/brands", "layout");
     revalidatePath("/en/brands", "layout");
+    revalidatePath("/ru", "layout");
+    revalidatePath("/en", "layout");
   } catch {
     /* ignore */
   }

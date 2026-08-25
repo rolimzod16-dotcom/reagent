@@ -69,7 +69,7 @@ const TABS = [
   { href: "/admin/articles", tab: "articles", label: "Статьи" },
   { href: "/admin/solutions", tab: "solutions", label: "Решения" },
   { href: "/admin/about", tab: "about", label: "О компании" },
-  { href: "/admin/contacts", tab: "contacts", label: "Контакты" },
+  { href: "/admin/contacts", tab: "contacts", label: "Реквизиты" },
 ] as const;
 
 export type AdminTab = (typeof TABS)[number]["tab"];

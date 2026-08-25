@@ -67,7 +67,9 @@ export default async function ContactPage({
         <p className="text-sm font-semibold text-slate-900">
           {locale === "ru" ? SITE_LEGAL.brandRu : SITE_LEGAL.brandEn}
         </p>
-        <p className="mt-1 text-sm text-slate-600">{legalLine(locale)}</p>
+        <p className="mt-1 text-sm text-slate-600">
+          {legalLine(locale, settings)}
+        </p>
         <p className="mt-3 text-sm text-slate-700">
           Email:{" "}
           <a
@@ -91,6 +93,17 @@ export default async function ContactPage({
             </span>
           )}
         </p>
+        {settings.phone2?.trim() ? (
+          <p className="mt-2 text-sm text-slate-700">
+            {locale === "ru" ? "Телефон 2" : "Phone 2"}:{" "}
+            <a
+              href={`tel:${phoneHref(settings.phone2)}`}
+              className="font-medium text-brand-700"
+            >
+              {settings.phone2}
+            </a>
+          </p>
+        ) : null}
         {address && (
           <p className="mt-2 text-sm text-slate-700">
             {locale === "ru" ? "Адрес" : "Address"}: {address}

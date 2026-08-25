@@ -8,12 +8,17 @@ import { Field, TextArea } from "@/components/admin/fields";
 const empty = {
   email: "",
   phone: "",
+  phone2: "",
   addressRu: "",
   addressEn: "",
   hoursRu: "",
   hoursEn: "",
   noteRu: "",
   noteEn: "",
+  legalNameRu: "",
+  legalNameTj: "",
+  legalNameEn: "",
+  inn: "",
 };
 
 export default function AdminContactsPage() {
@@ -42,12 +47,17 @@ export default function AdminContactsPage() {
     setForm({
       email: s.email || "",
       phone: s.phone || "",
+      phone2: s.phone2 || "",
       addressRu: s.addressRu || "",
       addressEn: s.addressEn || "",
       hoursRu: s.hoursRu || "",
       hoursEn: s.hoursEn || "",
       noteRu: s.noteRu || "",
       noteEn: s.noteEn || "",
+      legalNameRu: s.legalNameRu || "",
+      legalNameTj: s.legalNameTj || "",
+      legalNameEn: s.legalNameEn || "",
+      inn: s.inn || "",
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gate.unlocked, gate.adminKey]);
@@ -76,13 +86,14 @@ export default function AdminContactsPage() {
   }
 
   return (
-    <AdminShell title="Контакты" tab="contacts" gate={gate}>
+    <AdminShell title="Реквизиты и контакты" tab="contacts" gate={gate}>
       {!gate.unlocked ? null : (
         <>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-slate-500">
-              Телефон и email показываются в шапке, подвале и на странице
-              контактов. После сохранения обновление на сайте занимает до минуты.
+              Телефоны, адрес, ООО / ЧДММ и ИНН — в шапке, подвале и на
+              страницах «Контакты» / «О компании». После сохранения обновите
+              сайт (до минуты).
             </p>
             <button
               type="button"
@@ -126,6 +137,41 @@ export default function AdminContactsPage() {
                   onChange={(v) => setForm((f) => ({ ...f, phone: v }))}
                   required
                   placeholder="+992 …"
+                />
+                <Field
+                  label="Телефон 2"
+                  value={form.phone2}
+                  onChange={(v) => setForm((f) => ({ ...f, phone2: v }))}
+                  placeholder="+992 …"
+                />
+                <Field
+                  label="ИНН"
+                  value={form.inn}
+                  onChange={(v) => setForm((f) => ({ ...f, inn: v }))}
+                  placeholder="000000000"
+                />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Юрлицо (подвал сайта)
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field
+                  label="ООО (RU)"
+                  value={form.legalNameRu}
+                  onChange={(v) => setForm((f) => ({ ...f, legalNameRu: v }))}
+                  placeholder='ООО «Тиби Хуршед»'
+                />
+                <Field
+                  label="ЧДММ (TJ)"
+                  value={form.legalNameTj}
+                  onChange={(v) => setForm((f) => ({ ...f, legalNameTj: v }))}
+                  placeholder='ЧДММ «Тиби Хуршед»'
+                />
+                <Field
+                  label="LLC (EN)"
+                  value={form.legalNameEn}
+                  onChange={(v) => setForm((f) => ({ ...f, legalNameEn: v }))}
+                  placeholder="Tibi Khurshed LLC"
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -173,7 +219,7 @@ export default function AdminContactsPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-green-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-800 disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
-                {saving ? "Сохранение…" : "Сохранить контакты"}
+                {saving ? "Сохранение…" : "Сохранить реквизиты"}
               </button>
             </form>
           )}

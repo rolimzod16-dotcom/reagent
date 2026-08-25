@@ -76,9 +76,23 @@ export function localePath(locale: string, path = ""): string {
   return `/${locale}${p}`;
 }
 
-export function legalLine(locale: "ru" | "en"): string {
+export type LegalOverride = {
+  legalNameRu?: string | null;
+  legalNameTj?: string | null;
+  legalNameEn?: string | null;
+  inn?: string | null;
+};
+
+export function legalLine(
+  locale: "ru" | "en",
+  extra?: LegalOverride | null
+): string {
+  const ru = extra?.legalNameRu?.trim() || SITE_LEGAL.nameRu;
+  const tj = extra?.legalNameTj?.trim() || SITE_LEGAL.nameTj;
+  const en = extra?.legalNameEn?.trim() || SITE_LEGAL.nameEn;
+  const inn = extra?.inn?.trim();
   if (locale === "ru") {
-    return `${SITE_LEGAL.nameRu} · ${SITE_LEGAL.nameTj}`;
+    return inn ? `${ru} · ${tj} · ИНН ${inn}` : `${ru} · ${tj}`;
   }
-  return `${SITE_LEGAL.nameEn} (${SITE_LEGAL.shortEn})`;
+  return inn ? `${en} (${SITE_LEGAL.shortEn}) · TIN ${inn}` : `${en} (${SITE_LEGAL.shortEn})`;
 }

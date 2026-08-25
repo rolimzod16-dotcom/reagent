@@ -21,10 +21,12 @@ const navKeys = [
 export function Header({
   locale,
   phone,
+  phone2,
   email,
 }: {
   locale: Locale;
   phone?: string;
+  phone2?: string;
   email?: string;
 }) {
   const displayPhone = phone || SITE_PHONE;
@@ -86,6 +88,15 @@ export function Header({
               <Phone className="h-3 w-3 text-green-light" />
               {displayPhone}
             </a>
+            {phone2?.trim() ? (
+              <a
+                href={`tel:${phoneHref(phone2)}`}
+                className="inline-flex items-center gap-1.5 transition hover:text-green-light"
+              >
+                <Phone className="h-3 w-3 text-green-light" />
+                {phone2}
+              </a>
+            ) : null}
             <a
               href={`mailto:${displayEmail}`}
               className="inline-flex items-center gap-1.5 transition hover:text-green-light"

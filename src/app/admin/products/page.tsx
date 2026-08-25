@@ -15,14 +15,7 @@ import {
   Upload,
 } from "lucide-react";
 import { AdminShell, useAdminKey } from "@/components/admin/AdminGate";
-
-type CatOption = {
-  id: string;
-  slug: string;
-  nameRu: string;
-  label: string;
-  depth: number;
-};
+import { CategoryPicker } from "@/components/admin/CategoryPicker";
 
 type CatTreeNode = {
   id: string;
@@ -74,13 +67,13 @@ const emptyForm = {
 
 export default function AdminProductsPage() {
   const gate = useAdminKey();
-  const [cats, setCats] = useState<CatOption[]>([]);
   const [tree, setTree] = useState<CatTreeNode[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [q, setQ] = useState("");
+  const [qInput, setQInput] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
@@ -160,7 +153,6 @@ export default function AdminProductsPage() {
       return;
     }
     const data = await res.json();
-    setCats(data.flat || []);
     setTree(data.tree || []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unlocked, adminKey]);
@@ -198,11 +190,19 @@ export default function AdminProductsPage() {
     }
   }, [unlocked, loadCats, loadProducts]);
 
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      setQ(qInput);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [qInput]);
+
   function openCreate() {
     setEditingId(null);
     setForm({
       ...emptyForm,
-      categoryId: cats[0]?.id || "",
+      categoryId: "",
     });
     setEditorOpen(true);
     setMsg("");
@@ -353,69 +353,30 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
-            <div className="relative min-w-0 flex-1">
+          <div className="mb-4 grid gap-3 lg:grid-cols-[1fr_minmax(280px,420px)]">
+            <div className="relative min-w-0">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
-                value={q}
-                onChange={(e) => {
-                  setPage(1);
-                  setQ(e.target.value);
-                }}
-                placeholder="Поиск: название, артикул, slug…"
+                value={qInput}
+                onChange={(e) => setQInput(e.target.value)}
+                placeholder="Поиск товара: название, артикул, бренд…"
                 className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-600/15"
               />
             </div>
-            <select
-              value={categoryId}
-              onChange={(e) => {
-                setPage(1);
-                setCategoryId(e.target.value);
-              }}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold"
-            >
-              <option value="">Все категории</option>
-              {cats.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {tree.length > 0 && (
-            <div className="mb-4 max-h-64 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Категории и подкатегории (как на сайте)
-              </p>
-              <button
-                type="button"
-                onClick={() => {
+            {tree.length > 0 ? (
+              <CategoryPicker
+                tree={tree}
+                value={categoryId}
+                allowEmpty
+                emptyLabel="Все каталоги"
+                label="Фильтр по каталогу / подкаталогу"
+                onChange={(id) => {
                   setPage(1);
-                  setCategoryId("");
+                  setCategoryId(id);
                 }}
-                className={`mb-1 block w-full rounded-lg px-2 py-1.5 text-left text-xs font-semibold ${
-                  !categoryId
-                    ? "bg-green-50 text-green-800"
-                    : "text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Все каталоги
-              </button>
-              {tree.map((root) => (
-                <AdminCatBranch
-                  key={root.id}
-                  node={root}
-                  depth={0}
-                  selected={categoryId}
-                  onSelect={(id) => {
-                    setPage(1);
-                    setCategoryId(id);
-                  }}
-                />
-              ))}
-            </div>
-          )}
+              />
+            ) : null}
+          </div>
 
           {msg && (
             <p className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
@@ -609,29 +570,14 @@ export default function AdminProductsPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase text-slate-400">
-                      Категория / подкатегория *
-                    </label>
-                    <select
-                      required
-                      value={form.categoryId}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, categoryId: e.target.value }))
-                      }
-                      className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold"
-                    >
-                      <option value="">Выберите…</option>
-                      {cats.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-1 text-[11px] text-slate-400">
-                      Можно выбрать любую категорию или вложенную подкатегорию
-                    </p>
-                  </div>
+                  <CategoryPicker
+                    tree={tree}
+                    value={form.categoryId}
+                    label="Категория / подкатегория *"
+                    onChange={(id) =>
+                      setForm((f) => ({ ...f, categoryId: id }))
+                    }
+                  />
 
                   <div className="grid gap-3 sm:grid-cols-3">
                     <Field
@@ -882,47 +828,6 @@ export default function AdminProductsPage() {
         </>
       )}
     </AdminShell>
-  );
-}
-
-function AdminCatBranch({
-  node,
-  depth,
-  selected,
-  onSelect,
-}: {
-  node: CatTreeNode;
-  depth: number;
-  selected: string;
-  onSelect: (id: string) => void;
-}) {
-  const active = selected === node.id;
-  return (
-    <div style={{ paddingLeft: depth ? 12 : 0 }}>
-      <button
-        type="button"
-        onClick={() => onSelect(node.id)}
-        className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1 text-left text-xs ${
-          active
-            ? "bg-green-50 font-bold text-green-800"
-            : "text-slate-700 hover:bg-slate-50"
-        }`}
-      >
-        <span className="truncate">{node.nameRu}</span>
-        <span className="shrink-0 text-[10px] text-slate-400">
-          {node.subtreeCount}
-        </span>
-      </button>
-      {node.children.map((ch) => (
-        <AdminCatBranch
-          key={ch.id}
-          node={ch}
-          depth={depth + 1}
-          selected={selected}
-          onSelect={onSelect}
-        />
-      ))}
-    </div>
   );
 }
 
