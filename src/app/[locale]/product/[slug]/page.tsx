@@ -77,7 +77,7 @@ export default async function ProductPage({
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
+    <div className="mx-auto min-w-0 max-w-7xl px-4 py-10 sm:px-6 lg:py-14">
       <JsonLd data={jsonLd} />
       <Breadcrumbs
         items={[
@@ -95,7 +95,7 @@ export default async function ProductPage({
         ]}
       />
 
-      <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
+      <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:gap-14">
         <div className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-bg-soft shadow-sm">
           {img ? (
             <Image
@@ -110,7 +110,7 @@ export default async function ProductPage({
           ) : null}
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex min-w-0 flex-col">
           {product.manufacturer && (
             <Link
               href={`/${locale}/brands/${product.manufacturer.slug}`}
@@ -119,12 +119,12 @@ export default async function ProductPage({
               {product.manufacturer.name}
             </Link>
           )}
-          <h1 className="mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
+          <h1 className="break-long mt-3 font-display text-3xl tracking-tight text-ink sm:text-4xl">
             {name}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2">
             {product.sku && (
-              <span className="rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-semibold text-slate-600">
+              <span className="break-long rounded-full bg-slate-100 px-3 py-1 font-mono text-xs font-semibold text-slate-600">
                 {t(locale, "product_sku")}: {product.sku}
               </span>
             )}
@@ -164,7 +164,7 @@ export default async function ProductPage({
           </div>
 
           {field(locale, product.shortRu, product.shortEn) && (
-            <p className="mt-6 text-[15px] leading-relaxed text-muted">
+            <p className="break-long mt-6 text-[15px] leading-relaxed text-muted">
               {field(locale, product.shortRu, product.shortEn)}
             </p>
           )}
@@ -188,12 +188,12 @@ export default async function ProductPage({
         />
       </section>
 
-      <div className="mt-14 grid gap-10 lg:grid-cols-3">
-        <section className="lg:col-span-2">
+      <div className="mt-14 grid min-w-0 gap-10 lg:grid-cols-3">
+        <section className="min-w-0 lg:col-span-2">
           <h2 className="mb-3 border-b border-slate-200 pb-2 text-lg font-semibold">
             {t(locale, "product_overview")}
           </h2>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+          <p className="break-long whitespace-pre-line text-sm leading-relaxed text-slate-600">
             {field(locale, product.descriptionRu, product.descriptionEn) ||
               "—"}
           </p>
@@ -203,7 +203,7 @@ export default async function ProductPage({
               <h2 className="mb-3 mt-10 border-b border-slate-200 pb-2 text-lg font-semibold">
                 {t(locale, "product_apps")}
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="break-long text-sm text-slate-600">
                 {field(
                   locale,
                   product.applicationsRu,
@@ -214,22 +214,22 @@ export default async function ProductPage({
           )}
         </section>
 
-        <aside className="space-y-8">
-          <div>
+        <aside className="min-w-0 space-y-8">
+          <div className="min-w-0">
             <h2 className="mb-3 border-b border-slate-200 pb-2 text-lg font-semibold">
               {t(locale, "product_specs")}
             </h2>
             {product.specifications.length === 0 ? (
               <p className="text-sm text-slate-500">{t(locale, "no_specs")}</p>
             ) : (
-              <table className="w-full text-sm">
+              <table className="w-full table-fixed text-sm">
                 <tbody>
                   {product.specifications.map((s) => (
                     <tr key={s.id} className="border-b border-slate-100">
-                      <th className="py-2 pr-3 text-left font-medium text-slate-500">
+                      <th className="break-long w-[42%] py-2 pr-3 text-left align-top font-medium text-slate-500">
                         {field(locale, s.labelRu, s.labelEn)}
                       </th>
-                      <td className="py-2 text-slate-800">
+                      <td className="break-long py-2 align-top text-slate-800">
                         {field(locale, s.valueRu, s.valueEn)}
                       </td>
                     </tr>

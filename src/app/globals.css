@@ -225,6 +225,12 @@ body {
   box-shadow: 0 0 0 4px rgba(29, 191, 117, 0.25);
 }
 
+.break-long {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
 .card {
   background: #fff;
   border: 1px solid var(--line);

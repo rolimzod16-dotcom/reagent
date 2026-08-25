@@ -60,12 +60,12 @@ export function ProductCard({ locale, product }: ProductCardProps) {
           </p>
         )}
         <Link href={`/${locale}/product/${product.slug}`}>
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink transition group-hover:text-green sm:text-[15px]">
+          <h3 className="break-long line-clamp-2 text-sm font-bold leading-snug text-ink transition group-hover:text-green sm:text-[15px]">
             {name}
           </h3>
         </Link>
         {short && (
-          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">
+          <p className="break-long mt-2 line-clamp-2 text-xs leading-relaxed text-muted">
             {short}
           </p>
         )}
