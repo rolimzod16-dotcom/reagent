@@ -91,13 +91,42 @@ export async function ensureCmsDefaults() {
       hoursEn: "Mon–Fri, 9:00–18:00",
       noteRu: "Цена по запросу. Ответим в рабочее время.",
       noteEn: "Price on request. We reply during business hours.",
-      legalNameRu: "ООО «Тиби Хуршед»",
-      legalNameTj: "ЧДММ «Тиби Хуршед»",
-      legalNameEn: "Tibi Khurshed LLC",
+      legalNameRu: "ООО «Тибби Хуршед»",
+      legalNameTj: "ЧДММ «Тибби Хуршед»",
+      legalNameEn: "Tibbi Khurshed LLC",
       inn: "",
     },
     update: {},
   });
+
+  const legal = await prisma.siteSettings.findUnique({
+    where: { id: "main" },
+    select: { legalNameRu: true, legalNameTj: true, legalNameEn: true },
+  });
+  if (
+    legal &&
+    (legal.legalNameRu.includes("Тиби Хуршед") ||
+      legal.legalNameTj.includes("Тиби Хуршед") ||
+      legal.legalNameEn.includes("Tibi Khurshed"))
+  ) {
+    await prisma.siteSettings.update({
+      where: { id: "main" },
+      data: {
+        legalNameRu: legal.legalNameRu.replaceAll(
+          "Тиби Хуршед",
+          "Тибби Хуршед"
+        ),
+        legalNameTj: legal.legalNameTj.replaceAll(
+          "Тиби Хуршед",
+          "Тибби Хуршед"
+        ),
+        legalNameEn: legal.legalNameEn.replaceAll(
+          "Tibi Khurshed",
+          "Tibbi Khurshed"
+        ),
+      },
+    });
+  }
 
   await prisma.cmsPage.upsert({
     where: { key: "about" },
@@ -128,9 +157,9 @@ const FALLBACK_SETTINGS = {
   hoursEn: "Mon–Fri, 9:00–18:00",
   noteRu: "",
   noteEn: "",
-  legalNameRu: "ООО «Тиби Хуршед»",
-  legalNameTj: "ЧДММ «Тиби Хуршед»",
-  legalNameEn: "Tibi Khurshed LLC",
+  legalNameRu: "ООО «Тибби Хуршед»",
+  legalNameTj: "ЧДММ «Тибби Хуршед»",
+  legalNameEn: "Tibbi Khurshed LLC",
   inn: "",
   updatedAt: new Date(),
 };
@@ -148,7 +177,7 @@ export function getSiteSettings() {
         return FALLBACK_SETTINGS;
       }
     },
-    ["site-settings-v3"],
+    ["site-settings-v4"],
     { revalidate: 60, tags: ["cms"] }
   )();
 }

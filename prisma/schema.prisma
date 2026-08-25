@@ -205,9 +205,9 @@ model SiteSettings {
   hoursEn     String   @default("")
   noteRu      String   @default("")
   noteEn      String   @default("")
-  legalNameRu String   @default("ООО «Тиби Хуршед»")
-  legalNameTj String   @default("ЧДММ «Тиби Хуршед»")
-  legalNameEn String   @default("Tibi Khurshed LLC")
+  legalNameRu String   @default("ООО «Тибби Хуршед»")
+  legalNameTj String   @default("ЧДММ «Тибби Хуршед»")
+  legalNameEn String   @default("Tibbi Khurshed LLC")
   inn         String   @default("")
   updatedAt   DateTime @updatedAt
 }

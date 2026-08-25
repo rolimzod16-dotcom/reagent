@@ -49,15 +49,15 @@ export async function PUT(req: Request) {
         noteRu: sanitizeText(data.noteRu || "", 500),
         noteEn: sanitizeText(data.noteEn || "", 500),
         legalNameRu: sanitizeText(
-          data.legalNameRu || "ООО «Тиби Хуршед»",
+          data.legalNameRu || "ООО «Тибби Хуршед»",
           200
         ),
         legalNameTj: sanitizeText(
-          data.legalNameTj || "ЧДММ «Тиби Хуршед»",
+          data.legalNameTj || "ЧДММ «Тибби Хуршед»",
           200
         ),
         legalNameEn: sanitizeText(
-          data.legalNameEn || "Tibi Khurshed LLC",
+          data.legalNameEn || "Tibbi Khurshed LLC",
           200
         ),
         inn: sanitizeText(data.inn || "", 40),

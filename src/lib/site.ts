@@ -31,9 +31,9 @@ export function isPlaceholderPhone(phone: string): boolean {
  * RU: ООО · TJ: ЧДММ · EN: LLC (CDMM = Latin form of ЧДММ)
  */
 export const SITE_LEGAL = {
-  nameRu: "ООО «Тиби Хуршед»",
-  nameTj: "ЧДММ «Тиби Хуршед»",
-  nameEn: "Tibi Khurshed LLC",
+  nameRu: "ООО «Тибби Хуршед»",
+  nameTj: "ЧДММ «Тибби Хуршед»",
+  nameEn: "Tibbi Khurshed LLC",
   /** Latin abbreviation of ЧДММ */
   shortEn: "CDMM",
   brandRu: "РЕАГЕНТ (reagent.tj)",

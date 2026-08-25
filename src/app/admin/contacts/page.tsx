@@ -159,19 +159,19 @@ export default function AdminContactsPage() {
                   label="ООО (RU)"
                   value={form.legalNameRu}
                   onChange={(v) => setForm((f) => ({ ...f, legalNameRu: v }))}
-                  placeholder='ООО «Тиби Хуршед»'
+                  placeholder='ООО «Тибби Хуршед»'
                 />
                 <Field
                   label="ЧДММ (TJ)"
                   value={form.legalNameTj}
                   onChange={(v) => setForm((f) => ({ ...f, legalNameTj: v }))}
-                  placeholder='ЧДММ «Тиби Хуршед»'
+                  placeholder='ЧДММ «Тибби Хуршед»'
                 />
                 <Field
                   label="LLC (EN)"
                   value={form.legalNameEn}
                   onChange={(v) => setForm((f) => ({ ...f, legalNameEn: v }))}
-                  placeholder="Tibi Khurshed LLC"
+                  placeholder="Tibbi Khurshed LLC"
                 />
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
