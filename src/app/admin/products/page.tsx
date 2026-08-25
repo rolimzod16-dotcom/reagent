@@ -36,6 +36,9 @@ type ProductRow = {
   published: boolean;
   featured: boolean;
   source: string;
+  priceOnRequest?: boolean;
+  priceAmount?: string | null;
+  priceCurrency?: string | null;
   category: { id: string; slug: string; nameRu: string };
   manufacturer: { id: string; name: string } | null;
   images: { url: string }[];
@@ -62,6 +65,9 @@ const emptyForm = {
   imageUrl: "",
   published: true,
   featured: false,
+  priceOnRequest: true,
+  priceAmount: "",
+  priceCurrency: "USD",
   specifications: [] as SpecRow[],
 };
 
@@ -235,6 +241,9 @@ export default function AdminProductsPage() {
       imageUrl: product.images?.[0]?.url || "",
       published: !!product.published,
       featured: !!product.featured,
+      priceOnRequest: product.priceOnRequest !== false,
+      priceAmount: product.priceAmount || "",
+      priceCurrency: product.priceCurrency || "USD",
       specifications: (product.specifications || []).map(
         (s: {
           labelRu: string;
@@ -258,6 +267,10 @@ export default function AdminProductsPage() {
       setErr("Укажите название и категорию");
       return;
     }
+    if (!form.priceOnRequest && !form.priceAmount.trim()) {
+      setErr("Укажите цену или включите «цена по запросу»");
+      return;
+    }
     setSaving(true);
     setErr("");
     setMsg("");
@@ -275,6 +288,9 @@ export default function AdminProductsPage() {
       imageUrl: form.imageUrl.trim() || null,
       published: form.published,
       featured: form.featured,
+      priceOnRequest: form.priceOnRequest,
+      priceAmount: form.priceAmount.trim() || null,
+      priceCurrency: form.priceCurrency,
       specifications: form.specifications.filter(
         (s) => s.labelRu.trim() && s.valueRu.trim()
       ),
@@ -692,6 +708,60 @@ export default function AdminProductsPage() {
                       rows={4}
                       className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
                     />
+                  </div>
+
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="mb-2 text-xs font-bold uppercase text-slate-400">
+                      Цена
+                    </p>
+                    <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={form.priceOnRequest}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            priceOnRequest: e.target.checked,
+                          }))
+                        }
+                        className="accent-green-700"
+                      />
+                      Цена по запросу (кнопка заявки всегда есть)
+                    </label>
+                    <div className="grid gap-2 sm:grid-cols-[1fr_120px]">
+                      <Field
+                        label={
+                          form.priceOnRequest
+                            ? "Ориентир (необязательно)"
+                            : "Сумма *"
+                        }
+                        value={form.priceAmount}
+                        onChange={(v) =>
+                          setForm((f) => ({ ...f, priceAmount: v }))
+                        }
+                        placeholder="1250"
+                      />
+                      <div>
+                        <label className="mb-1 block text-xs font-bold uppercase text-slate-400">
+                          Валюта
+                        </label>
+                        <select
+                          value={form.priceCurrency}
+                          onChange={(e) =>
+                            setForm((f) => ({
+                              ...f,
+                              priceCurrency: e.target.value,
+                            }))
+                          }
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+                        >
+                          <option value="USD">USD</option>
+                          <option value="TJS">TJS</option>
+                          <option value="EUR">EUR</option>
+                          <option value="RUB">RUB</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap gap-4">

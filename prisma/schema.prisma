@@ -58,6 +58,11 @@ model Product {
   applicationsEn  String?
   published       Boolean                 @default(true)
   featured        Boolean                 @default(false)
+  /** If true — show "price on request" (amount may still be a hint). */
+  priceOnRequest  Boolean                 @default(true)
+  /** Stored as "1250.00" */
+  priceAmount     String?
+  priceCurrency   String                  @default("USD")
   /** seed = from build-catalog; admin = created in admin panel */
   source          String                  @default("seed")
   categoryId      String

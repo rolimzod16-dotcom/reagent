@@ -15,6 +15,8 @@ import {
   Trash2,
   Upload,
   X,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { AdminShell, useAdminKey } from "@/components/admin/AdminGate";
 import { Field } from "@/components/admin/fields";
@@ -99,6 +101,7 @@ export default function AdminCategoriesPage() {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [savingEditor, setSavingEditor] = useState(false);
   const [uploadingEditor, setUploadingEditor] = useState(false);
+  const [visFilter, setVisFilter] = useState<"all" | "live" | "hidden">("all");
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const editorFileRef = useRef<HTMLInputElement | null>(null);
 
@@ -322,6 +325,38 @@ export default function AdminCategoriesPage() {
     }
   }
 
+  async function setPublished(node: CatNode, published: boolean) {
+    if (!adminKey) return;
+    setBusyId(node.id);
+    setErr("");
+    setMsg("");
+    try {
+      const res = await fetch(`/api/admin/categories/${node.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": adminKey,
+        },
+        body: JSON.stringify({ published }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(data.error || "Не удалось изменить видимость");
+        return;
+      }
+      setTree((t) => patchNode(t, node.id, { published }));
+      setMsg(
+        published
+          ? `«${node.nameRu}» снова на сайте`
+          : `«${node.nameRu}» скрыта с сайта`
+      );
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Сеть / таймаут");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function removeNode(node: CatNode) {
     if (!adminKey) return;
     const ok = window.confirm(
@@ -352,8 +387,13 @@ export default function AdminCategoriesPage() {
     }
   }
 
+  const allRows = flatten(tree);
+  const liveCount = allRows.filter((r) => r.node.published).length;
+  const hiddenCount = allRows.filter((r) => !r.node.published).length;
   const query = q.trim().toLowerCase();
-  const rows = flatten(tree).filter(({ node }) => {
+  const rows = allRows.filter(({ node }) => {
+    if (visFilter === "live" && !node.published) return false;
+    if (visFilter === "hidden" && node.published) return false;
     if (!query) return true;
     return (
       node.nameRu.toLowerCase().includes(query) ||
@@ -362,9 +402,10 @@ export default function AdminCategoriesPage() {
     );
   });
 
-  const visible = query
-    ? rows
-    : rows.filter(({ node }) => isVisible(tree, node.id, open));
+  const visible =
+    query || visFilter !== "all"
+      ? rows
+      : rows.filter(({ node }) => isVisible(tree, node.id, open));
 
   const parentLabel = editor?.parentId
     ? findNode(tree, editor.parentId)?.nameRu || "раздел"
@@ -374,9 +415,10 @@ export default function AdminCategoriesPage() {
     <AdminShell title="Категории" tab="categories" gate={gate}>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500">
-          Разделы и подразделы каталога: название, фото, вложенность. Товары не
-          удаляются.
+          Разделы и подразделы: фото, названия, скрыть / вернуть на сайт.
+          Товары не удаляются.
           {total ? ` · ${total} шт.` : ""}
+          {hiddenCount ? ` · скрыто ${hiddenCount}` : ""}
         </p>
         <div className="flex flex-wrap gap-2">
           <button
@@ -396,6 +438,29 @@ export default function AdminCategoriesPage() {
             Обновить
           </button>
         </div>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {(
+          [
+            ["all", `Все (${total})`],
+            ["live", `На сайте (${liveCount})`],
+            ["hidden", `Скрытые (${hiddenCount})`],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setVisFilter(id)}
+            className={`rounded-full px-3 py-1.5 text-xs font-bold ${
+              visFilter === id
+                ? "bg-green-700 text-white"
+                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       <div className="relative mb-4 max-w-md">
@@ -686,15 +751,38 @@ export default function AdminCategoriesPage() {
                           <Pencil className="h-3.5 w-3.5" />
                           Имя
                         </button>
-                        <button
-                          type="button"
-                          disabled={busy}
-                          onClick={() => removeNode(node)}
-                          className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-red-600 disabled:opacity-50"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                          {node.subtreeCount > 0 ? "Скрыть" : "Удалить"}
-                        </button>
+                        {node.published ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setPublished(node, false)}
+                            className="inline-flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                          >
+                            <EyeOff className="h-3.5 w-3.5" />
+                            Скрыть
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setPublished(node, true)}
+                            className="inline-flex items-center gap-1 rounded-xl border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-bold text-green-800 hover:bg-green-100 disabled:opacity-50"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            На сайт
+                          </button>
+                        )}
+                        {node.subtreeCount === 0 ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => removeNode(node)}
+                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-red-600 disabled:opacity-50"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Удалить
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </div>

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Locale, field, t } from "@/lib/i18n";
+import { Locale, field } from "@/lib/i18n";
 import { QuoteButton } from "./QuoteButton";
 import { AddToCartButton } from "./AddToCartButton";
+import { displayPrice } from "@/lib/price";
 
 type ProductCardProps = {
   locale: Locale;
@@ -17,6 +18,9 @@ type ProductCardProps = {
     shortEn: string | null;
     manufacturer?: { name: string; slug: string } | null;
     images: { url: string; altRu: string | null; altEn: string | null }[];
+    priceAmount?: string | null;
+    priceCurrency?: string | null;
+    priceOnRequest?: boolean | null;
   };
   index?: number;
 };
@@ -25,6 +29,7 @@ export function ProductCard({ locale, product }: ProductCardProps) {
   const name = field(locale, product.nameRu, product.nameEn);
   const short = field(locale, product.shortRu, product.shortEn);
   const img = product.images[0];
+  const price = displayPrice(product, locale);
 
   return (
     <article className="group card flex flex-col overflow-hidden">
@@ -73,7 +78,7 @@ export function ProductCard({ locale, product }: ProductCardProps) {
         <div className="mt-auto border-t border-line pt-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <span className="text-sm font-bold text-green">
-              {t(locale, "price_on_request")}
+              {price.label}
             </span>
           </div>
           <div className="flex flex-col gap-2">

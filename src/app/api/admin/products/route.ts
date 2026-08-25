@@ -11,6 +11,7 @@ import {
 import { sanitizeText } from "@/lib/security";
 import { productSearchWhere } from "@/lib/search";
 import { isHttpUrl, normalizeImageUrl } from "@/lib/image-url";
+import { parsePriceAmount, PRICE_CURRENCIES } from "@/lib/price";
 import type { Prisma } from "@prisma/client";
 
 function bustCatalogCache() {
@@ -39,6 +40,9 @@ const productSchema = z.object({
   imageUrl: z.string().max(2000).optional().nullable().or(z.literal("")),
   published: z.boolean().optional(),
   featured: z.boolean().optional(),
+  priceOnRequest: z.boolean().optional(),
+  priceAmount: z.string().max(20).optional().nullable(),
+  priceCurrency: z.string().max(8).optional().nullable(),
   specifications: z
     .array(
       z.object({
@@ -143,6 +147,13 @@ export async function POST(req: Request) {
     if (exists) slug = `${slug}-${Math.random().toString(36).slice(2, 5)}`;
 
     const nameEn = data.nameEn?.trim() || data.nameRu;
+    const amount = parsePriceAmount(data.priceAmount ?? null);
+    if (data.priceOnRequest === false && !amount) {
+      return NextResponse.json(
+        { error: "Укажите цену или включите «цена по запросу»" },
+        { status: 400 }
+      );
+    }
     const imageUrl = data.imageUrl?.trim()
       ? normalizeImageUrl(data.imageUrl)
       : null;
@@ -170,6 +181,13 @@ export async function POST(req: Request) {
           : null,
         published: data.published !== false,
         featured: !!data.featured,
+        priceOnRequest: data.priceOnRequest !== false,
+        priceAmount: amount,
+        priceCurrency: PRICE_CURRENCIES.includes(
+          (data.priceCurrency || "USD") as (typeof PRICE_CURRENCIES)[number]
+        )
+          ? (data.priceCurrency || "USD")
+          : "USD",
         source: "admin",
         categoryId: cat.id,
         manufacturerId,

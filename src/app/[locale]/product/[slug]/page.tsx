@@ -13,6 +13,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { buildPageMetadata, productJsonLd } from "@/lib/seo";
 import { SITE_DOMAIN } from "@/lib/site";
+import { displayPrice } from "@/lib/price";
 import { JsonLd } from "@/components/JsonLd";
 
 export const revalidate = 300;
@@ -140,7 +141,7 @@ export default async function ProductPage({
               {locale === "ru" ? "Стоимость" : "Pricing"}
             </p>
             <p className="mt-1 text-2xl font-extrabold tracking-tight text-green">
-              {t(locale, "price_on_request")}
+              {displayPrice(product, locale).label}
             </p>
             <div className="mt-5 flex flex-col gap-2">
               <AddToCartButton
@@ -157,8 +158,8 @@ export default async function ProductPage({
               />
               <p className="text-[11px] leading-relaxed text-muted">
                 {locale === "ru"
-                  ? "«Запросить цену» — откроется форма заявки ниже. «В корзину» — несколько позиций (нужен аккаунт)."
-                  : "“Request quote” scrolls to the form below. “Add to cart” — multi-item (account required)."}
+                  ? "«Запросить цену» — заявка менеджеру. «В корзину» — несколько позиций (нужен аккаунт)."
+                  : "“Request a quote” notifies sales. “Add to cart” — multi-item (account required)."}
               </p>
             </div>
           </div>

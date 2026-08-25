@@ -9,6 +9,7 @@ import {
 } from "@/lib/admin-products-store";
 import { sanitizeText } from "@/lib/security";
 import { normalizeImageUrl } from "@/lib/image-url";
+import { parsePriceAmount, PRICE_CURRENCIES } from "@/lib/price";
 
 function bustCatalogCache(slug?: string) {
   try {
@@ -42,6 +43,9 @@ const patchSchema = z.object({
   imageUrl: z.string().max(2000).optional().nullable().or(z.literal("")),
   published: z.boolean().optional(),
   featured: z.boolean().optional(),
+  priceOnRequest: z.boolean().optional(),
+  priceAmount: z.string().max(20).optional().nullable(),
+  priceCurrency: z.string().max(8).optional().nullable(),
   specifications: z
     .array(
       z.object({
@@ -188,6 +192,21 @@ export async function PATCH(req: Request, ctx: Ctx) {
         ...(manufacturerId !== undefined ? { manufacturerId } : {}),
         ...(data.published !== undefined ? { published: data.published } : {}),
         ...(data.featured !== undefined ? { featured: data.featured } : {}),
+        ...(data.priceOnRequest !== undefined
+          ? { priceOnRequest: data.priceOnRequest }
+          : {}),
+        ...(data.priceAmount !== undefined
+          ? { priceAmount: parsePriceAmount(data.priceAmount) }
+          : {}),
+        ...(data.priceCurrency !== undefined
+          ? {
+              priceCurrency: PRICE_CURRENCIES.includes(
+                (data.priceCurrency || "USD") as (typeof PRICE_CURRENCIES)[number]
+              )
+                ? data.priceCurrency || "USD"
+                : "USD",
+            }
+          : {}),
         source: "admin",
         ...(data.imageUrl !== undefined && imageUrl
           ? {
