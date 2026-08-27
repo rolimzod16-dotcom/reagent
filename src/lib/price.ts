@@ -15,8 +15,9 @@ export function formatPrice(
   currency: string | null | undefined,
   locale: Locale
 ): string | null {
-  const n = Number(amount);
-  if (!Number.isFinite(n)) return null;
+  if (amount == null || String(amount).trim() === "") return null;
+  const n = Number(String(amount).replace(/\s/g, "").replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0) return null;
   const cur = (currency || "USD").toUpperCase();
   try {
     return new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US", {
