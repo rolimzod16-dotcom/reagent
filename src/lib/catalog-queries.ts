@@ -87,7 +87,7 @@ export function getCatalogPagePayload(opts: {
 }) {
   const perPage = opts.perPage ?? 12;
   const key = [
-    "catalog-page-v11",
+    "catalog-page-v12",
     opts.locale,
     opts.manufacturer || "",
     opts.q || "",
@@ -128,7 +128,7 @@ export function getCategoryPagePayload(opts: {
 }) {
   const perPage = opts.perPage ?? 24;
   const key = [
-    "category-page-v7",
+    "category-page-v8",
     opts.slug,
     opts.locale,
     opts.manufacturer || "",
@@ -227,7 +227,7 @@ export function getHomePagePayload() {
         subcats: pillarStats,
       };
     },
-    ["home-page-v9"],
+    ["home-page-v10"],
     { revalidate: 180, tags: ["catalog"] }
   )();
 }

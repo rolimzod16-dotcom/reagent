@@ -72,6 +72,85 @@ const SEGMENT_RU = {
   "nabory-reagentov-dlya-analizatora-hematite": "Наборы для HEMATITE",
   "nabory-dlya-analizatorov-serii-ultima": "Наборы для анализаторов Ультима",
   "parazitanye-invazii": "Паразитарные инвазии",
+  gormony: "Гормоны",
+  "promyvochnye-rastvory-vse": "Промывочные растворы",
+  "promyvochnye-rastvory": "Промывочные растворы",
+  "rastvory-i-komponenty": "Растворы и компоненты",
+  "geneticheskie-markery-antibiotikorezistentnosti":
+    "Генетические маркеры антибиотикорезистентности",
+  "vyyavlenie-vidovoy-prinadlezhnosti-tkaney-zhivotnykh":
+    "Видовая принадлежность тканей",
+  "infektsionnye-bolezni-neskolkikh-vidov-zhivotnykh":
+    "Инфекционные болезни нескольких видов животных",
+  "infektsionnye-bolezni-sobak-i-koshek": "Инфекционные болезни собак и кошек",
+  "infektsionnye-bolezni-domashney-ptitsy": "Инфекционные болезни домашней птицы",
+  "infektsionnye-bolezni-sviney": "Инфекционные болезни свиней",
+  "infektsionnye-bolezni-sivney": "Инфекционные болезни свиней",
+  "infektsionnye-bolezni-zhvachnykh": "Инфекционные болезни жвачных",
+  "infektsionnye-bolezni-koshek": "Инфекционные болезни кошек",
+  "infektsionnye-bolezni-sobak": "Инфекционные болезни собак",
+  "infektsionnye-bolezni-krolikov": "Инфекционные болезни кроликов",
+  "infektsionnye-bolezni-loshadey": "Инфекционные болезни лошадей",
+  "infektsionnye-bolezni-ptits": "Инфекционные болезни птиц",
+  "infektsionnye-bolezni-popugaev": "Инфекционные болезни попугаев",
+  "infektsionnye-bolezni-ryb": "Инфекционные болезни рыб",
+  "nabory-reagentov-v-kartridzhakh-dlya-analizatora-miura":
+    "Наборы в картриджах для Miura",
+  "nabory-reagentov-v-kartridzhakh-dlya-analizatora-taurus":
+    "Наборы в картриджах для Taurus",
+  "nabory-reagentov-v-kartridzhakh-dlya-analizatora-va400":
+    "Наборы в картриджах для VA400",
+  "nabory-reagentov-v-kartridzhakh-dlya-analizatorov-serii-aspekt":
+    "Наборы в картриджах для Aspekt",
+  "nabory-reagentov-v-kartridzhakh-dlya-analizatora-aspekt-mini":
+    "Наборы в картриджах для Aspekt Mini",
+};
+
+const WORD_RU = {
+  infektsionnye: "инфекционные",
+  bolezni: "болезни",
+  neskolkikh: "нескольких",
+  vidov: "видов",
+  zhivotnykh: "животных",
+  sobak: "собак",
+  koshek: "кошек",
+  domashney: "домашней",
+  ptitsy: "птицы",
+  ptits: "птиц",
+  sviney: "свиней",
+  sivney: "свиней",
+  zhvachnykh: "жвачных",
+  gormony: "гормоны",
+  geneticheskie: "генетические",
+  markery: "маркеры",
+  antibiotikorezistentnosti: "антибиотикорезистентности",
+  krolikov: "кроликов",
+  loshadey: "лошадей",
+  popugaev: "попугаев",
+  ryb: "рыб",
+  rastvory: "растворы",
+  komponenty: "компоненты",
+  vyyavlenie: "выявление",
+  vidovoy: "видовой",
+  prinadlezhnosti: "принадлежности",
+  tkaney: "тканей",
+  nabory: "наборы",
+  reagentov: "реагентов",
+  kartridzhakh: "картриджах",
+  dlya: "для",
+  analizatora: "анализатора",
+  analizatorov: "анализаторов",
+  serii: "серии",
+  promyvochnye: "промывочные",
+  vse: "",
+  biokhimiya: "биохимия",
+  veterinariya: "ветеринария",
+  gemostaz: "гемостаз",
+  fermenty: "ферменты",
+  substraty: "субстраты",
+  lipidy: "липиды",
+  elektrolity: "электролиты",
+  kalibratory: "калибраторы",
 };
 
 const SLUG_LABELS = {
@@ -87,11 +166,16 @@ const SLUG_LABELS = {
   "vb-ptsr-zbm": { ru: "Прочие ПЦР-наборы", en: "Other PCR kits" },
 };
 
+function titleRu(s) {
+  return s.replace(/^\S/, (c) => c.toUpperCase());
+}
+
 function segName(seg) {
   if (SEGMENT_RU[seg]) return SEGMENT_RU[seg];
-  return seg
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  const words = seg.split("-").map((w) => WORD_RU[w] ?? w);
+  const joined = words.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  if (joined && !/^[a-z0-9 ]+$/i.test(joined)) return titleRu(joined);
+  return titleRu(joined || seg.replace(/-/g, " "));
 }
 
 function asciiSlug(parts) {
@@ -146,6 +230,7 @@ async function ensurePath(reagentsRootId, categoryPath, cache) {
     }
     const slug = asciiSlug(built);
     let cat = await prisma.category.findUnique({ where: { slug } });
+    const skipPublish = slug.startsWith("vb-oborudovanie");
     if (!cat) {
       const nameRu = segName(seg);
       try {
@@ -155,15 +240,33 @@ async function ensurePath(reagentsRootId, categoryPath, cache) {
             nameRu,
             nameEn: nameRu,
             parentId,
-            published: true,
+            published: !skipPublish,
             sortOrder: 10,
           },
         });
       } catch {
         cat = await prisma.category.findUnique({ where: { slug } });
       }
+    } else if (!skipPublish && !cat.published) {
+      cat = await prisma.category.update({
+        where: { id: cat.id },
+        data: { published: true },
+      });
     }
     if (!cat) throw new Error("failed cat " + slug);
+    const better = segName(seg);
+    if (
+      better &&
+      cat.nameRu &&
+      /[A-Za-z]{4,}/.test(cat.nameRu) &&
+      !/[A-Za-z]{4,}/.test(better) &&
+      cat.nameRu !== better
+    ) {
+      cat = await prisma.category.update({
+        where: { id: cat.id },
+        data: { nameRu: better, nameEn: better },
+      });
+    }
     const forced = SLUG_LABELS[slug];
     if (forced && cat.nameRu !== forced.ru) {
       cat = await prisma.category.update({
