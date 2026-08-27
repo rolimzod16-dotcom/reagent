@@ -131,7 +131,7 @@ const getSitemapEntries = unstable_cache(
 
     return entries;
   },
-  ["sitemap-v5"],
+  ["sitemap-v8"],
   { revalidate: 3600, tags: ["catalog"] }
 );
 
