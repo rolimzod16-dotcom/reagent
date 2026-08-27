@@ -4,7 +4,6 @@
  */
 import fs from "fs";
 import path from "path";
-import https from "https";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -16,38 +15,30 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function fetch(url) {
-  return new Promise((resolve, reject) => {
-    const req = https.get(
-      url,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Accept: "text/html,application/xhtml+xml",
-        },
-        timeout: 45000,
+async function fetch(url, attempt = 1) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 25000);
+  try {
+    const res = await globalThis.fetch(url, {
+      redirect: "follow",
+      signal: ctrl.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml",
       },
-      (res) => {
-        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          return fetch(new URL(res.headers.location, url).href).then(resolve, reject);
-        }
-        const chunks = [];
-        res.on("data", (c) => chunks.push(c));
-        res.on("end", () =>
-          resolve({
-            status: res.statusCode,
-            body: Buffer.concat(chunks).toString("utf8"),
-          })
-        );
-      }
-    );
-    req.on("error", reject);
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error("timeout " + url));
     });
-  });
+    const body = await res.text();
+    return { status: res.status, body };
+  } catch (e) {
+    if (attempt < 3) {
+      await sleep(800 * attempt);
+      return fetch(url, attempt + 1);
+    }
+    throw e;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 function strip(html) {
@@ -97,25 +88,28 @@ function parseListProducts(html, pageUrl) {
       .replace(/\s+/g, "")
       .trim();
     const name = fields["Название"]?.title;
-    // D-… PCR/IFA kits, B-… biochemistry, H-… hemostasis, V-… veterinary, etc.
-    if (!sku || !name || !/^[A-Z]-\d+/i.test(sku)) continue;
+    // D- PCR/IFA, B- biochemistry, H- hemostasis, V- veterinary, etc.
+    if (!sku || !name || !/^[A-Z]{1,3}-?\d+/i.test(sku)) continue;
     const qty =
       fields["Количество определений"]?.title ||
       fields["Количество определений"]?.text ||
+      fields["Фасовка"]?.title ||
+      fields["Фасовка"]?.text ||
       null;
     const extra =
       fields["Дополнительная информация"]?.title ||
       fields["Дополнительная информация"]?.text ||
       fields["Название"]?.text ||
+      fields["Метод"]?.title ||
       null;
     products.push({
       sku,
       nameRu: name,
       nameEn: name,
-      descriptionRu: [extra, qty ? `Определений: ${qty}` : null]
+      descriptionRu: [extra, qty ? `Фасовка / определений: ${qty}` : null]
         .filter(Boolean)
         .join(". "),
-      descriptionEn: [extra, qty ? `Tests: ${qty}` : null]
+      descriptionEn: [extra, qty ? `Pack / tests: ${qty}` : null]
         .filter(Boolean)
         .join(". "),
       qty,
@@ -199,6 +193,7 @@ async function main() {
 
   console.log("1) Fetch catalog root…");
   const rootPage = await fetch(BASE + "/catalog/");
+  console.log("root status", rootPage.status, "bytes", rootPage.body.length);
   let links = parseCategoryLinks(rootPage.body);
   // reagent branches only (no equipment)
   const seeds = [
@@ -230,6 +225,9 @@ async function main() {
     if (pathUrl.includes("programmnoe-obespechenie")) continue;
     seenPages.add(pathUrl);
     categoryPaths.add(pathUrl);
+    if (seenPages.size % 20 === 0) {
+      console.log("discover", seenPages.size, "queue", queue.length, pathUrl);
+    }
     if (seenPages.size > 500) break; // safety
     try {
       const { status, body } = await fetch(BASE + pathUrl);

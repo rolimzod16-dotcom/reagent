@@ -251,14 +251,7 @@ async function main() {
     const hit = bySku.get(sku) || bySlug.get(slug);
     try {
       if (hit) {
-        await prisma.product.update({
-          where: { id: hit.id },
-          data: {
-            ...data,
-            // keep featured if already set (e.g. EHBT)
-          },
-        });
-        // refresh primary image if missing
+        // Keep already-imported products as-is; only fill a missing image.
         const imgCount = await prisma.productImage.count({
           where: { productId: hit.id },
         });
@@ -272,8 +265,8 @@ async function main() {
               sortOrder: 0,
             },
           });
+          updated++;
         }
-        updated++;
       } else {
         const created = await prisma.product.create({
           data: {
