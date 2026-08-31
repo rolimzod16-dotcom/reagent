@@ -62,6 +62,11 @@ const nextConfig: NextConfig = {
         destination: "/:locale/catalog/threelab-equipment",
         permanent: true,
       },
+      {
+        source: "/catalog/katalog-reagent-2026.pdf",
+        destination: "/files/katalog-reagent-2026.pdf",
+        permanent: false,
+      },
     ];
   },
   outputFileTracingIncludes: {
@@ -69,6 +74,7 @@ const nextConfig: NextConfig = {
       "./node_modules/.prisma/**/*",
       "./data/admin-products.json",
     ],
+    "/api/catalog-pdf": ["./public/files/katalog-reagent-2026.pdf"],
   },
 };
 
