@@ -1,4 +1,4 @@
-import { getLocale, isLocale, t, field } from "@/lib/i18n";
+import { getLocale, isLocale, t, field, productsLabel } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ProductCard } from "@/components/ProductCard";
 import { getBrandPagePayload } from "@/lib/catalog-queries";
@@ -80,7 +80,7 @@ export default async function BrandPage({
         </p>
       )}
       <p className="mt-2 text-sm text-slate-500">
-        {total} {t(locale, "brands_products")}
+        {total} {productsLabel(locale, total)}
       </p>
       {cats.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">

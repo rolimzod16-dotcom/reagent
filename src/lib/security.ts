@@ -73,7 +73,7 @@ export function assertAdminKey(headerValue: string | null): boolean {
 export function getAuthSecret(): Uint8Array {
   const s = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
   const isProd =
-    process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+    process.env.NODE_ENV === "production";
 
   if (!s || s.length < 32) {
     if (isProd) {

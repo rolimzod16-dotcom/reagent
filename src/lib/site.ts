@@ -28,13 +28,13 @@ export function isPlaceholderPhone(phone: string): boolean {
 
 /**
  * Legal entity behind REAGENT.TJ
- * RU: ООО · TJ: ЧДММ · EN: LLC (CDMM = Latin form of ЧДММ)
+ * RU: ООО · TJ: ҶДММ · EN: LLC (CDMM = Latin form of ҶДММ)
  */
 export const SITE_LEGAL = {
   nameRu: "ООО «Тибби Хуршед»",
-  nameTj: "ЧДММ «Тибби Хуршед»",
+  nameTj: "ҶДММ «Тибби Хуршед»",
   nameEn: "Tibbi Khurshed LLC",
-  /** Latin abbreviation of ЧДММ */
+  /** Latin abbreviation of ҶДММ */
   shortEn: "CDMM",
   brandRu: "РЕАГЕНТ (reagent.tj)",
   brandEn: "REAGENT (reagent.tj)",
@@ -49,6 +49,16 @@ export const CATALOG_PARTNER = {
   noteEn:
     "The laboratory reagents and kits catalog is offered in partnership with Vector-Best. Supply and commercial terms are handled by REAGENT (reagent.tj).",
 };
+
+export function isVectorBestCatalogSlug(slug?: string | null): boolean {
+  if (!slug) return false;
+  const s = slug.toLowerCase();
+  if (s.startsWith("vb-")) return true;
+  if (s === "reagents" || s === "reagenty" || s === "reagent") return true;
+  if (s === "reaktivy_laboratornykh_issledovaniy") return true;
+  if (s.includes("vector-best") || s.includes("vektor-best")) return true;
+  return false;
+}
 
 /** Geo: Tajikistan / Dushanbe */
 export const SITE_GEO = {

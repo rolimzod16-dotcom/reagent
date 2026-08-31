@@ -8,6 +8,7 @@ import {
   SITE_NAME_RU,
   SITE_PHONE,
   SITE_URL,
+  isPlaceholderPhone,
   absoluteUrl,
   localePath,
 } from "@/lib/site";
@@ -120,7 +121,7 @@ export function organizationJsonLd() {
     ],
     url: SITE_URL,
     email: SITE_EMAIL,
-    telephone: SITE_PHONE,
+    ...(isPlaceholderPhone(SITE_PHONE) ? {} : { telephone: SITE_PHONE }),
     foundingDate: "2024",
     description:
       "B2B-поставщик медицинского оборудования, лабораторных реагентов и расходных материалов в Таджикистане (Душанбе и регионы).",
@@ -151,7 +152,7 @@ export function organizationJsonLd() {
         "@type": "ContactPoint",
         contactType: "sales",
         email: SITE_EMAIL,
-        telephone: SITE_PHONE,
+        ...(isPlaceholderPhone(SITE_PHONE) ? {} : { telephone: SITE_PHONE }),
         areaServed: "TJ",
         availableLanguage: ["Russian", "English", "Tajik"],
       },

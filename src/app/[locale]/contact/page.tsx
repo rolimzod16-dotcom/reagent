@@ -79,21 +79,18 @@ export default async function ContactPage({
             {settings.email}
           </a>
         </p>
-        <p className="mt-2 text-sm text-slate-700">
-          {locale === "ru" ? "Телефон" : "Phone"}:{" "}
-          <a
-            href={`tel:${phoneHref(settings.phone)}`}
-            className="font-medium text-brand-700"
-          >
-            {settings.phone}
-          </a>
-          {placeholder && (
-            <span className="ml-2 text-xs text-slate-400">
-              {locale === "ru" ? "(скоро обновим)" : "(coming soon)"}
-            </span>
-          )}
-        </p>
-        {settings.phone2?.trim() ? (
+        {!placeholder && settings.phone?.trim() ? (
+          <p className="mt-2 text-sm text-slate-700">
+            {locale === "ru" ? "Телефон" : "Phone"}:{" "}
+            <a
+              href={`tel:${phoneHref(settings.phone)}`}
+              className="font-medium text-brand-700"
+            >
+              {settings.phone}
+            </a>
+          </p>
+        ) : null}
+        {settings.phone2?.trim() && !isPlaceholderPhone(settings.phone2) ? (
           <p className="mt-2 text-sm text-slate-700">
             {locale === "ru" ? "Телефон 2" : "Phone 2"}:{" "}
             <a

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { getLocale, isLocale, t, field } from "@/lib/i18n";
+import { getLocale, isLocale, t, field, productsLabel } from "@/lib/i18n";
+import { isJunkText } from "@/lib/content-filter";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -37,14 +38,18 @@ export default async function BrandsPage({
   const locale = getLocale({ locale: raw });
   const { q } = await searchParams;
 
-  const brands = await prisma.manufacturer.findMany({
+  const brandsRaw = await prisma.manufacturer.findMany({
     where: {
       published: true,
+      products: { some: { published: true } },
       ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
     },
     orderBy: { name: "asc" },
-    include: { _count: { select: { products: true } } },
+    include: { _count: { select: { products: { where: { published: true } } } } },
   });
+  const brands = brandsRaw.filter(
+    (b) => !isJunkText(b.slug) && !isJunkText(b.name)
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -79,7 +84,7 @@ export default async function BrandsPage({
               </p>
             )}
             <p className="mt-3 text-xs text-brand-700">
-              {b._count.products} {t(locale, "brands_products")}
+              {b._count.products} {productsLabel(locale, b._count.products)}
             </p>
           </Link>
         ))}

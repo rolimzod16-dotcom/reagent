@@ -30,6 +30,16 @@ export function subcatsLabel(locale: Locale, n: number) {
   return ruPlural(n, "подкатегория", "подкатегории", "подкатегорий");
 }
 
+export function catsLabel(locale: Locale, n: number) {
+  if (locale === "en") return n === 1 ? "category" : "categories";
+  return ruPlural(n, "категория", "категории", "категорий");
+}
+
+export function productsLabel(locale: Locale, n: number) {
+  if (locale === "en") return n === 1 ? "product" : "products";
+  return ruPlural(n, "товар", "товара", "товаров");
+}
+
 type Dict = Record<string, string>;
 
 const ru: Dict = {
@@ -184,6 +194,10 @@ const ru: Dict = {
   solutions_title: "Медицинские решения",
   articles_title: "Статьи и материалы",
   documents_title: "Документы",
+  download_catalog: "Скачать каталог",
+  download_catalog_pdf: "Скачать каталог PDF",
+  download_catalog_hint:
+    "Полный PDF всех позиций с сайта. Цена по запросу.",
   faq_title: "Частые вопросы",
   contact_title: "Контакты",
   contact_sub: "Свяжитесь с нами для консультации и коммерческого предложения.",
@@ -355,6 +369,10 @@ const en: Dict = {
   solutions_title: "Medical solutions",
   articles_title: "Articles & insights",
   documents_title: "Documents",
+  download_catalog: "Download catalog",
+  download_catalog_pdf: "Download catalog PDF",
+  download_catalog_hint:
+    "Full PDF of every published item on the site. Price on request.",
   faq_title: "FAQ",
   contact_title: "Contact",
   contact_sub: "Contact us for consultation and commercial offers.",

@@ -76,7 +76,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v13"],
+  ["category-graph-v15"],
   { revalidate: 120, tags: ["catalog"] }
 );
 

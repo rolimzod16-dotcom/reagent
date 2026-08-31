@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getLocale, isLocale, t, field } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -51,13 +52,27 @@ export default async function DocumentsPage({
       <h1 className="mb-4 text-3xl font-semibold text-slate-900">
         {t(locale, "documents_title")}
       </h1>
-      <p className="mb-8 text-sm text-slate-600">
+      <p className="mb-6 text-sm text-slate-600">
         {locale === "ru"
-          ? "Инструкции, паспорта и PDF по позициям каталога. Если файла нет в списке — запросите его вместе с ценой."
-          : "Manuals, datasheets and PDFs attached to catalog items. If a file is missing, request it with your quote."}
+          ? "Полный каталог сайта — одним файлом, как у производителя: скачайте PDF и работайте офлайн. Ниже — инструкции и паспорта по отдельным позициям."
+          : "The full site catalog is one PDF — download and work offline. Individual manuals and datasheets are listed below."}
       </p>
+      <CatalogDownloadLink locale={locale} variant="banner" className="mb-8" />
       {docs.length === 0 ? (
-        <p className="text-sm text-slate-500">{t(locale, "no_docs")}</p>
+        <div className="rounded-2xl border border-dashed border-line bg-white px-6 py-10 text-center">
+          <p className="text-sm text-muted">{t(locale, "no_docs")}</p>
+          <p className="mt-2 text-sm text-muted">
+            {locale === "ru"
+              ? "Нужен паспорт, инструкция или регистрационное удостоверение — запросите вместе с ценой."
+              : "Need a datasheet, manual or registration certificate? Request it with your quote."}
+          </p>
+          <Link
+            href={`/${locale}/contact`}
+            className="mt-5 inline-flex text-sm font-bold text-green hover:underline"
+          >
+            {locale === "ru" ? "Оставить запрос →" : "Send a request →"}
+          </Link>
+        </div>
       ) : (
         <ul className="divide-y border border-slate-200">
           {docs.map((d) => (

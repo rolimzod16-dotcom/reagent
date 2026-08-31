@@ -1,7 +1,8 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getLocale, isLocale, t } from "@/lib/i18n";
+import { getLocale, isLocale, t, resultsLabel } from "@/lib/i18n";
 import { productSearchWhere } from "@/lib/search";
+import { junkProductPrismaOr } from "@/lib/content-filter";
 import { ProductCard } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
@@ -16,6 +17,7 @@ function cachedSearch(query: string) {
       prisma.product.findMany({
         where: {
           published: true,
+          NOT: { OR: junkProductPrismaOr },
           ...productSearchWhere(query),
         },
         take: 48,
@@ -24,7 +26,7 @@ function cachedSearch(query: string) {
           images: { orderBy: { sortOrder: "asc" }, take: 1 },
         },
       }),
-    ["search-v1", query.toLowerCase()],
+    ["search-v3", query.toLowerCase()],
     { revalidate: 120, tags: ["catalog"] }
   )();
 }
@@ -68,7 +70,7 @@ export default async function SearchPage({
         {query ? `: «${query}»` : ""}
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        {products.length} {t(locale, "catalog_results")}
+        {products.length} {resultsLabel(locale, products.length)}
       </p>
       <form action={`/${locale}/search`} className="mt-6 max-w-xl">
         <input

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db push --skip-generate && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "db:push": "prisma db push",
@@ -13,6 +13,7 @@
     "db:build-catalog": "node prisma/build-catalog.mjs",
     "db:deznet-cats": "node scripts/upsert-deznet-categories.mjs",
     "db:reorder-cats": "node scripts/reorder-catalog-roots.mjs",
+    "catalog:pdf": "node --env-file=.env scripts/dump-site-catalog.mjs && python scripts/generate_site_catalog.py",
     "postinstall": "prisma generate"
   },
   "prisma": {

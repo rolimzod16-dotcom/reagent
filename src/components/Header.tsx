@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X, Search, Phone, Mail, UserRound } from "lucide-react";
+import { CatalogDownloadLink } from "./CatalogDownloadLink";
 import { Locale, t } from "@/lib/i18n";
-import { SITE_EMAIL, SITE_PHONE, phoneHref } from "@/lib/site";
+import { SITE_EMAIL, SITE_PHONE, phoneHref, isPlaceholderPhone } from "@/lib/site";
 import { CartButton } from "./CartButton";
 import { BrandLogo } from "./BrandLogo";
 
@@ -31,6 +32,8 @@ export function Header({
 }) {
   const displayPhone = phone || SITE_PHONE;
   const displayEmail = email || SITE_EMAIL;
+  const showPhone = Boolean(displayPhone) && !isPlaceholderPhone(displayPhone);
+  const showPhone2 = Boolean(phone2?.trim()) && !isPlaceholderPhone(phone2 || "");
   const tel = phoneHref(displayPhone);
   const pathname = usePathname();
   const router = useRouter();
@@ -81,16 +84,18 @@ export function Header({
       <div className="hidden border-b border-green-deep/20 bg-green-deep text-white sm:block">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2 text-xs sm:px-6">
           <div className="flex flex-wrap items-center gap-4 text-white/85">
-            <a
-              href={`tel:${tel}`}
-              className="inline-flex items-center gap-1.5 transition hover:text-green-light"
-            >
-              <Phone className="h-3 w-3 text-green-light" />
-              {displayPhone}
-            </a>
-            {phone2?.trim() ? (
+            {showPhone ? (
               <a
-                href={`tel:${phoneHref(phone2)}`}
+                href={`tel:${tel}`}
+                className="inline-flex items-center gap-1.5 transition hover:text-green-light"
+              >
+                <Phone className="h-3 w-3 text-green-light" />
+                {displayPhone}
+              </a>
+            ) : null}
+            {showPhone2 ? (
+              <a
+                href={`tel:${phoneHref(phone2!)}`}
                 className="inline-flex items-center gap-1.5 transition hover:text-green-light"
               >
                 <Phone className="h-3 w-3 text-green-light" />
@@ -111,6 +116,7 @@ export function Header({
                 ? "B2B · Цена по запросу"
                 : "B2B · Price on request"}
             </span>
+            <CatalogDownloadLink locale={locale} variant="header" />
             <div className="flex overflow-hidden rounded border border-white/15 text-[10px] font-bold">
               {(["ru", "en"] as const).map((l) => (
                 <button
@@ -239,6 +245,11 @@ export function Header({
                 EN
               </button>
             </div>
+            <CatalogDownloadLink
+              locale={locale}
+              variant="mobile"
+              className="mt-2"
+            />
             <Link
               href={`/${locale}/cart`}
               onClick={() => setOpen(false)}

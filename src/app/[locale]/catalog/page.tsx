@@ -6,7 +6,8 @@ import { CatalogShowcase } from "@/components/CatalogShowcase";
 import { CatalogPagination } from "@/components/CatalogPagination";
 import { getCatalogPagePayload } from "@/lib/catalog-queries";
 import { catalogNavVisible, toFilterCategories } from "@/lib/catalog-nav";
-import { CatalogPartnerNote } from "@/components/CatalogPartnerNote";
+import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
+
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { buildPageMetadata } from "@/lib/seo";
@@ -96,6 +97,7 @@ export default async function CatalogPage({
         <p className="mt-2 text-sm text-muted">
           {total} {resultsLabel(locale, total)} · {t(locale, "price_on_request")}
         </p>
+        <CatalogDownloadLink locale={locale} variant="banner" className="mt-5" />
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -166,8 +168,6 @@ export default async function CatalogPage({
               <CatalogPagination page={page} pages={pages} hrefFor={hrefFor} />
             </>
           ) : null}
-
-          <CatalogPartnerNote locale={locale} />
         </div>
       </div>
     </div>

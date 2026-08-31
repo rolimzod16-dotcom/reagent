@@ -1,9 +1,16 @@
 import { Locale } from "@/lib/i18n";
-import { CATALOG_PARTNER } from "@/lib/site";
+import { CATALOG_PARTNER, isVectorBestCatalogSlug } from "@/lib/site";
 import { Handshake } from "lucide-react";
 
-/** Soft partnership line for catalog pages — no legal requisites. */
-export function CatalogPartnerNote({ locale }: { locale: Locale }) {
+/** Soft partnership line — only on Vector-Best reagent/equipment trees. */
+export function CatalogPartnerNote({
+  locale,
+  slug,
+}: {
+  locale: Locale;
+  slug?: string | null;
+}) {
+  if (!isVectorBestCatalogSlug(slug)) return null;
   return (
     <aside className="mt-12 rounded-2xl border border-green-200/80 bg-green-50/70 px-5 py-4 sm:px-6">
       <div className="flex items-start gap-3">

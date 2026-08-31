@@ -24,19 +24,24 @@ function createPrisma() {
     throw new Error("DATABASE_URL (or DIRECT_URL) is not set");
   }
 
-  // Vercel *build* runs in the US against Tokyo Postgres — needs a longer wait
-  // than a warm serverless isolate.
   const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+  // Cloudflare Workers / OpenNext: one short-lived connection per isolate.
+  const serverless =
+    !!process.env.CF_PAGES ||
+    !!process.env.CLOUDFLARE ||
+    process.env.NEXT_RUNTIME === "edge" ||
+    typeof (globalThis as { WorkerGlobalScope?: unknown }).WorkerGlobalScope !==
+      "undefined";
 
   const pool =
     globalForPrisma.pgPool ||
     new Pool({
       connectionString: pgConnectionString(raw),
       ssl: { rejectUnauthorized: false },
-      // Serverless: 1 connection per isolate; use transaction pooler (:6543)
-      max: isBuild ? 3 : process.env.VERCEL ? 1 : 5,
+      max: isBuild ? 3 : 1,
+      maxUses: serverless || !isBuild ? 1 : 100,
       idleTimeoutMillis: isBuild ? 20_000 : 5_000,
-      connectionTimeoutMillis: isBuild ? 20_000 : 5_000,
+      connectionTimeoutMillis: isBuild ? 20_000 : 8_000,
       allowExitOnIdle: true,
     });
 

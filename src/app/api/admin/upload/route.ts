@@ -6,10 +6,7 @@ import {
 } from "@/lib/supabase-admin";
 import { guessMime } from "@/lib/image-url";
 
-export const runtime = "nodejs";
-export const maxDuration = 60;
-
-const MAX_BYTES = 4 * 1024 * 1024; // Vercel hobby body limit ~4.5 MB
+const MAX_BYTES = 8 * 1024 * 1024;
 const ALLOWED = new Set([
   "image/jpeg",
   "image/jpg",

@@ -6,7 +6,21 @@ import { CatalogShowcase } from "@/components/CatalogShowcase";
 import { CatalogPagination } from "@/components/CatalogPagination";
 import { getCategoryPagePayload } from "@/lib/catalog-queries";
 import { toFilterCategories } from "@/lib/catalog-nav";
+import type { CategoryTreeNode } from "@/lib/catalog";
+
+function subtreeCount(
+  nodes: CategoryTreeNode[],
+  slug: string
+): number | null {
+  for (const n of nodes) {
+    if (n.slug === slug) return n.count;
+    const inner = subtreeCount(n.children, slug);
+    if (inner != null) return inner;
+  }
+  return null;
+}
 import { CatalogPartnerNote } from "@/components/CatalogPartnerNote";
+import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
 import { InquiryForm } from "@/components/InquiryForm";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -76,6 +90,7 @@ export default async function CategoryPage({
     perPage,
   } = data;
   const pages = Math.max(1, Math.ceil(total / perPage));
+  const headingTotal = subtreeCount(tree, slug) ?? total;
   const catName = field(locale, category.nameRu, category.nameEn);
   const parent = category.parent;
   const liveChildren = childrenWithCounts;
@@ -114,13 +129,14 @@ export default async function CategoryPage({
         </p>
         <h1 className="mt-2 display-lg text-ink">{catName}</h1>
         <p className="mt-2 text-sm text-muted">
-          {total > 0
-            ? `${total} ${resultsLabel(locale, total)}`
+          {headingTotal > 0
+            ? `${headingTotal} ${resultsLabel(locale, headingTotal)}`
             : t(locale, "catalog_on_request")}
           {liveChildren.length > 0
             ? ` · ${liveChildren.length} ${subcatsLabel(locale, liveChildren.length)}`
             : ""}
         </p>
+        <CatalogDownloadLink locale={locale} variant="outline" className="mt-4" />
       </div>
 
       <div className="flex flex-col gap-8 lg:flex-row">
@@ -183,7 +199,7 @@ export default async function CategoryPage({
           )}
           <CatalogPagination page={page} pages={pages} hrefFor={hrefFor} />
           <div className="mt-10">
-            <CatalogPartnerNote locale={locale} />
+            <CatalogPartnerNote locale={locale} slug={slug} />
           </div>
         </div>
       </div>

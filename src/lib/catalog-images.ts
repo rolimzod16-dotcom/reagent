@@ -19,6 +19,7 @@ const BY_SLUG: Record<string, string> = {
   reaktivy_laboratornykh_issledovaniy: FILES.reagents,
   "vb-immunochemistry": FILES.ifa,
   "vb-ptsr": FILES.pcr,
+  "vb-eq": FILES.labInstruments,
   laboratoriya: FILES.laboratory,
   "threelab-equipment": FILES.labInstruments,
   raskhodniki_meditsinskie: FILES.consumables,
@@ -47,6 +48,7 @@ function isForeignCatalogPhoto(url?: string | null): boolean {
 export function defaultCatalogImage(slug: string): string {
   if (BY_SLUG[slug]) return BY_SLUG[slug];
   if (slug.startsWith("vb-immunochemistry")) return FILES.ifa;
+  if (slug.startsWith("vb-eq")) return FILES.labInstruments;
   if (slug.startsWith("vb-ptsr") || slug.includes("ptsr")) return FILES.pcr;
   if (slug.startsWith("threelab") || slug.startsWith("tl-") || slug.startsWith("lab-")) {
     return FILES.labInstruments;

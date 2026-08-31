@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { SITE_EMAIL, SITE_PHONE } from "@/lib/site";
+import { SITE_EMAIL, SITE_PHONE, SITE_LEGAL } from "@/lib/site";
 
 export const DEFAULT_ABOUT_RU = `РЕАГЕНТ (reagent.tj) — B2B-платформа медицинского направления в Таджикистане. Каталог оборудования, реагентов и расходных материалов для клиник, лабораторий и дистрибьюторов.
 
@@ -91,9 +91,9 @@ export async function ensureCmsDefaults() {
       hoursEn: "Mon–Fri, 9:00–18:00",
       noteRu: "Цена по запросу. Ответим в рабочее время.",
       noteEn: "Price on request. We reply during business hours.",
-      legalNameRu: "ООО «Тибби Хуршед»",
-      legalNameTj: "ЧДММ «Тибби Хуршед»",
-      legalNameEn: "Tibbi Khurshed LLC",
+      legalNameRu: SITE_LEGAL.nameRu,
+      legalNameTj: SITE_LEGAL.nameTj,
+      legalNameEn: SITE_LEGAL.nameEn,
       inn: "",
     },
     update: {},
@@ -103,29 +103,38 @@ export async function ensureCmsDefaults() {
     where: { id: "main" },
     select: { legalNameRu: true, legalNameTj: true, legalNameEn: true },
   });
-  if (
-    legal &&
-    (legal.legalNameRu.includes("Тиби Хуршед") ||
-      legal.legalNameTj.includes("Тиби Хуршед") ||
-      legal.legalNameEn.includes("Tibi Khurshed"))
-  ) {
-    await prisma.siteSettings.update({
-      where: { id: "main" },
-      data: {
-        legalNameRu: legal.legalNameRu.replaceAll(
-          "Тиби Хуршед",
-          "Тибби Хуршед"
-        ),
-        legalNameTj: legal.legalNameTj.replaceAll(
-          "Тиби Хуршед",
-          "Тибби Хуршед"
-        ),
-        legalNameEn: legal.legalNameEn.replaceAll(
-          "Tibi Khurshed",
-          "Tibbi Khurshed"
-        ),
-      },
-    });
+  if (legal) {
+    let legalNameRu = (legal.legalNameRu || "").replaceAll(
+      "Тиби Хуршед",
+      "Тибби Хуршед"
+    );
+    let legalNameTj = (legal.legalNameTj || "")
+      .replaceAll("Тиби Хуршед", "Тибби Хуршед")
+      .replaceAll("ЧДММ", "ҶДММ");
+    let legalNameEn = (legal.legalNameEn || "").replaceAll(
+      "Tibi Khurshed",
+      "Tibbi Khurshed"
+    );
+    if (
+      /лиценз|license|сертификат|рег\.?\s*№/i.test(legalNameRu) ||
+      legalNameRu.length > 80
+    ) {
+      legalNameRu = SITE_LEGAL.nameRu;
+    }
+    if (!legalNameTj.includes("Тибби Хуршед")) {
+      legalNameTj = SITE_LEGAL.nameTj;
+    }
+    if (!legalNameEn.trim()) legalNameEn = SITE_LEGAL.nameEn;
+    if (
+      legalNameRu !== legal.legalNameRu ||
+      legalNameTj !== legal.legalNameTj ||
+      legalNameEn !== legal.legalNameEn
+    ) {
+      await prisma.siteSettings.update({
+        where: { id: "main" },
+        data: { legalNameRu, legalNameTj, legalNameEn },
+      });
+    }
   }
 
   await prisma.cmsPage.upsert({
@@ -157,9 +166,9 @@ const FALLBACK_SETTINGS = {
   hoursEn: "Mon–Fri, 9:00–18:00",
   noteRu: "",
   noteEn: "",
-  legalNameRu: "ООО «Тибби Хуршед»",
-  legalNameTj: "ЧДММ «Тибби Хуршед»",
-  legalNameEn: "Tibbi Khurshed LLC",
+  legalNameRu: SITE_LEGAL.nameRu,
+  legalNameTj: SITE_LEGAL.nameTj,
+  legalNameEn: SITE_LEGAL.nameEn,
   inn: "",
   updatedAt: new Date(),
 };
@@ -177,7 +186,7 @@ export function getSiteSettings() {
         return FALLBACK_SETTINGS;
       }
     },
-    ["site-settings-v4"],
+    ["site-settings-v5"],
     { revalidate: 60, tags: ["cms"] }
   )();
 }

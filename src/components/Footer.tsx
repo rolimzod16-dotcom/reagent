@@ -8,8 +8,10 @@ import {
   SITE_URL,
   legalLine,
   phoneHref,
+  isPlaceholderPhone,
 } from "@/lib/site";
 import { BrandLogo } from "./BrandLogo";
+import { CatalogDownloadLink } from "./CatalogDownloadLink";
 
 export function Footer({
   locale,
@@ -34,6 +36,8 @@ export function Footer({
 }) {
   const displayPhone = phone || SITE_PHONE;
   const displayEmail = email || SITE_EMAIL;
+  const showPhone = Boolean(displayPhone) && !isPlaceholderPhone(displayPhone);
+  const showPhone2 = Boolean(phone2?.trim()) && !isPlaceholderPhone(phone2 || "");
   const tel = phoneHref(displayPhone);
   const displayAddress =
     address || (locale === "ru" ? "Душанбе / регионы" : "Dushanbe / regions");
@@ -81,6 +85,9 @@ export function Footer({
                 {t(locale, "nav_documents")}
               </Link>
             </li>
+            <li>
+              <CatalogDownloadLink locale={locale} variant="footer" />
+            </li>
           </ul>
         </div>
 
@@ -117,17 +124,19 @@ export function Footer({
             {t(locale, "contact_title")}
           </h3>
           <ul className="mt-4 space-y-3 text-sm text-white/70">
-            <li className="flex items-start gap-2">
-              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-green-light" />
-              <a href={`tel:${tel}`} className="hover:text-white">
-                {displayPhone}
-              </a>
-            </li>
-            {phone2?.trim() ? (
+            {showPhone ? (
+              <li className="flex items-start gap-2">
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-green-light" />
+                <a href={`tel:${tel}`} className="hover:text-white">
+                  {displayPhone}
+                </a>
+              </li>
+            ) : null}
+            {showPhone2 ? (
               <li className="flex items-start gap-2">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-green-light" />
                 <a
-                  href={`tel:${phoneHref(phone2)}`}
+                  href={`tel:${phoneHref(phone2!)}`}
                   className="hover:text-white"
                 >
                   {phone2}

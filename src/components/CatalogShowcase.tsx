@@ -108,8 +108,8 @@ export function CatalogShowcase({
                         className="block px-4 py-2.5 text-xs font-bold text-green hover:bg-green-mist"
                       >
                         {locale === "ru"
-                          ? `Ещё ${extra} подкатегорий →`
-                          : `${extra} more subcategories →`}
+                          ? `Ещё ${extra} ${subcatsLabel(locale, extra)} →`
+                          : `${extra} more ${subcatsLabel(locale, extra)} →`}
                       </Link>
                     </li>
                   ) : null}

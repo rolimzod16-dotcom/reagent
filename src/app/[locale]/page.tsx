@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getHomePagePayload } from "@/lib/catalog-queries";
-import { getLocale, isLocale, t, resultsLabel } from "@/lib/i18n";
+import { getLocale, isLocale, t, resultsLabel, catsLabel, productsLabel } from "@/lib/i18n";
 import { ProductCard } from "@/components/ProductCard";
 import { CatalogShowcase } from "@/components/CatalogShowcase";
 import { QuoteButton } from "@/components/QuoteButton";
@@ -22,6 +22,7 @@ import {
   FlaskConical,
   Package,
 } from "lucide-react";
+import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
 
 export const revalidate = 120;
 export const maxDuration = 30;
@@ -96,16 +97,16 @@ export default async function HomePage({
             <h1 className="mt-5 display-xl text-white">
               {locale === "ru" ? (
                 <>
-                  Всё для клиники
+                  Всё для клиники{" "}
                   <span className="block text-green-light">
                     и лаборатории
                   </span>
                 </>
               ) : (
                 <>
-                  Everything for clinics
+                  Everything for clinics{" "}
                   <span className="block text-green-light">
-                    &amp; laboratories
+                    and laboratories
                   </span>
                 </>
               )}
@@ -122,6 +123,7 @@ export default async function HomePage({
                 {t(locale, "cta_catalog")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
+              <CatalogDownloadLink locale={locale} variant="button" />
               <Link href={`/${locale}/contact`} className="btn btn-ghost-light">
                 {t(locale, "cta_consult")}
               </Link>
@@ -159,7 +161,7 @@ export default async function HomePage({
                   {pillarStats.length}
                 </div>
                 <div className="text-white/50">
-                  {t(locale, "catalog_categories_count")}
+                  {catsLabel(locale, pillarStats.length)}
                 </div>
               </div>
               <div>
@@ -236,7 +238,7 @@ export default async function HomePage({
                 {t(locale, "catalog_browse")}
               </h2>
               <p className="mt-1 text-sm text-muted">
-                {productCount}+ {t(locale, "catalog_results")} ·{" "}
+                {productCount}+ {resultsLabel(locale, productCount)} ·{" "}
                 {t(locale, "price_on_request")}
               </p>
             </div>
@@ -396,7 +398,8 @@ export default async function HomePage({
                 <div>
                   <h3 className="text-sm font-bold text-ink">{m.name}</h3>
                   <p className="text-xs text-muted">
-                    {m._count.products} {t(locale, "brands_products")}
+                    {m._count.products}{" "}
+                    {productsLabel(locale, m._count.products)}
                   </p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-300" />

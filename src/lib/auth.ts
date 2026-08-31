@@ -59,7 +59,7 @@ export async function readSessionToken(
 export async function setSessionCookie(token: string) {
   const jar = await cookies();
   const secure =
-    process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+    process.env.NODE_ENV === "production";
   jar.set(COOKIE, token, {
     httpOnly: true,
     secure,
@@ -72,7 +72,7 @@ export async function setSessionCookie(token: string) {
 export async function clearSessionCookie() {
   const jar = await cookies();
   const secure =
-    process.env.NODE_ENV === "production" || process.env.VERCEL === "1";
+    process.env.NODE_ENV === "production";
   jar.set(COOKIE, "", {
     httpOnly: true,
     secure,

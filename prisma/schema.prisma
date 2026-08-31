@@ -211,7 +211,7 @@ model SiteSettings {
   noteRu      String   @default("")
   noteEn      String   @default("")
   legalNameRu String   @default("ООО «Тибби Хуршед»")
-  legalNameTj String   @default("ЧДММ «Тибби Хуршед»")
+  legalNameTj String   @default("ҶДММ «Тибби Хуршед»")
   legalNameEn String   @default("Tibbi Khurshed LLC")
   inn         String   @default("")
   updatedAt   DateTime @updatedAt
