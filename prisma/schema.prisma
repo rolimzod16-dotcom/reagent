@@ -240,3 +240,14 @@ model Solution {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+/** Telegram chats that unlocked with ADMIN_KEY and receive inquiry alerts. */
+model TelegramSubscriber {
+  id        String   @id @default(cuid())
+  chatId    String   @unique
+  username  String?
+  firstName String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

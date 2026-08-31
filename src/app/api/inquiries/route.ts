@@ -15,6 +15,7 @@ import {
   rateLimitResponse,
   sanitizeText,
 } from "@/lib/security";
+import { notifyInquirySubscribers } from "@/lib/telegram";
 
 const itemSchema = z.object({
   productId: z.string().max(64).optional().nullable(),
@@ -174,6 +175,12 @@ export async function POST(req: Request) {
         ]),
       },
     });
+
+    try {
+      await notifyInquirySubscribers(inquiry.id);
+    } catch (err) {
+      console.error("telegram notify failed", err);
+    }
 
     return NextResponse.json(
       { id: inquiry.id, linked: !!userId },
