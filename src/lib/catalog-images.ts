@@ -37,7 +37,7 @@ const ROOT_BY_SLUG: Record<string, string> = {
   oborudovanie_endoskopicheskoe: FILES.endoscopy,
 };
 
-const GENERIC_ROOT = new Set(Object.values(FILES));
+const GENERIC_ROOT = new Set<string>(Object.values(FILES));
 
 function isForeignCatalogPhoto(url?: string | null): boolean {
   if (!url) return true;
