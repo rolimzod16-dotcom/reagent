@@ -129,7 +129,7 @@ export function getCategoryPagePayload(opts: {
 }) {
   const perPage = opts.perPage ?? 24;
   const key = [
-    "category-page-v17",
+    "category-page-v18",
     opts.slug,
     opts.locale,
     opts.manufacturer || "",
