@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { locales } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
 import { isJunkText, publicProductWhere } from "@/lib/content-filter";
+import { getCategoryTree, type CategoryTreeNode } from "@/lib/catalog";
 
 export const revalidate = 3600;
 
@@ -20,6 +21,17 @@ function langs(path: string): NonNullable<MetadataRoute.Sitemap[0]["alternates"]
       "x-default": `${SITE_URL}/ru${p === "/" ? "" : p}`,
     },
   };
+}
+
+function collectCategorySlugs(nodes: CategoryTreeNode[]): Set<string> {
+  const slugs = new Set<string>();
+  const queue = [...nodes];
+  while (queue.length) {
+    const node = queue.shift()!;
+    slugs.add(node.slug);
+    queue.push(...node.children);
+  }
+  return slugs;
 }
 
 const getSitemapEntries = unstable_cache(
@@ -58,7 +70,7 @@ const getSitemapEntries = unstable_cache(
     }
 
     try {
-      const [products, categories, brands, articles] = await Promise.all([
+      const [products, categories, brands, articles, categoryTree] = await Promise.all([
         prisma.product.findMany({
           where: publicProductWhere,
           select: { slug: true, nameRu: true, updatedAt: true },
@@ -78,6 +90,7 @@ const getSitemapEntries = unstable_cache(
           where: { published: true },
           select: { slug: true, updatedAt: true },
         }),
+        getCategoryTree(),
       ]);
 
       const cleanProducts = products.filter(
@@ -85,6 +98,10 @@ const getSitemapEntries = unstable_cache(
       );
       const cleanBrands = brands.filter(
         (b) => !isJunkText(b.slug) && !isJunkText(b.name)
+      );
+      const publicCategorySlugs = collectCategorySlugs(categoryTree);
+      const publicCategories = categories.filter((c) =>
+        publicCategorySlugs.has(c.slug)
       );
 
       for (const locale of locales) {
@@ -97,7 +114,7 @@ const getSitemapEntries = unstable_cache(
             alternates: langs(`/product/${p.slug}`),
           });
         }
-        for (const c of categories) {
+        for (const c of publicCategories) {
           entries.push({
             url: `${SITE_URL}/${locale}/catalog/${c.slug}`,
             lastModified: dayStamp(c.updatedAt),
@@ -131,7 +148,7 @@ const getSitemapEntries = unstable_cache(
 
     return entries;
   },
-  ["sitemap-v9"],
+  ["sitemap-v10"],
   { revalidate: 3600, tags: ["catalog"] }
 );
 

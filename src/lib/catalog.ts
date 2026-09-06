@@ -119,18 +119,21 @@ function buildTreeNodes(
   graph: CategoryGraph,
   parentId: string | null
 ): CategoryTreeNode[] {
-  return (graph.byParent[rootKey(parentId)] || []).map((c) => {
+  return (graph.byParent[rootKey(parentId)] || []).flatMap((c) => {
+    const count = subtreeCountFrom(graph.childrenMap, graph.directCount, c.id);
+    if (count === 0) return [];
+
     const children = buildTreeNodes(graph, c.id);
-    return {
+    return [{
       id: c.id,
       slug: c.slug,
       nameRu: c.nameRu,
       nameEn: c.nameEn,
       image: c.image,
-      count: subtreeCountFrom(graph.childrenMap, graph.directCount, c.id),
+      count,
       childCount: children.length,
       children,
-    };
+    }];
   });
 }
 
@@ -144,6 +147,9 @@ export async function getCategoryWithAncestry(slug: string) {
   const graph = await getCachedCategoryGraph();
   const category = graph.all.find((c) => c.slug === slug);
   if (!category) return null;
+  if (subtreeCountFrom(graph.childrenMap, graph.directCount, category.id) === 0) {
+    return null;
+  }
 
   // Derive parent/children from cached graph — no extra DB round-trip
   const parent = category.parentId
@@ -151,23 +157,32 @@ export async function getCategoryWithAncestry(slug: string) {
     : null;
   const children = graph.byParent[rootKey(category.id)] || [];
   const childIds = descendantIdsFrom(graph.childrenMap, category.id);
-  const childrenWithCounts = children.map((ch) => ({
-    id: ch.id,
-    slug: ch.slug,
-    nameRu: ch.nameRu,
-    nameEn: ch.nameEn,
-    image: ch.image,
-    parentId: ch.parentId,
-    sortOrder: ch.sortOrder,
-    count: subtreeCountFrom(graph.childrenMap, graph.directCount, ch.id),
-    childCount: (graph.byParent[rootKey(ch.id)] || []).length,
-    children: (graph.byParent[rootKey(ch.id)] || []).map((g) => ({
-      slug: g.slug,
-      nameRu: g.nameRu,
-      nameEn: g.nameEn,
-      image: g.image,
-    })),
-  }));
+  const childrenWithCounts = children.flatMap((ch) => {
+    const count = subtreeCountFrom(graph.childrenMap, graph.directCount, ch.id);
+    if (count === 0) return [];
+
+    const visibleGrandchildren = (graph.byParent[rootKey(ch.id)] || [])
+      .filter((g) => subtreeCountFrom(graph.childrenMap, graph.directCount, g.id) > 0)
+      .map((g) => ({
+        slug: g.slug,
+        nameRu: g.nameRu,
+        nameEn: g.nameEn,
+        image: g.image,
+      }));
+
+    return [{
+      id: ch.id,
+      slug: ch.slug,
+      nameRu: ch.nameRu,
+      nameEn: ch.nameEn,
+      image: ch.image,
+      parentId: ch.parentId,
+      sortOrder: ch.sortOrder,
+      count,
+      childCount: visibleGrandchildren.length,
+      children: visibleGrandchildren,
+    }];
+  });
 
   return {
     category: {
