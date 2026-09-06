@@ -22,7 +22,7 @@ function subtreeCount(
 import { CatalogPartnerNote } from "@/components/CatalogPartnerNote";
 import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
 import { InquiryForm } from "@/components/InquiryForm";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const revalidate = 180;
@@ -78,7 +78,7 @@ export default async function CategoryPage({
     manufacturer: sp.manufacturer,
     sort: sp.sort,
   });
-  if (!data) notFound();
+  if (!data) redirect(`/${locale}/catalog`);
 
   const {
     category,
