@@ -75,7 +75,7 @@ await c.query(
      "nameRu" = excluded."nameRu",
      "nameEn" = excluded."nameEn",
      published = true,
-     "updatedAt" = now()
+     "updatedAt" = now()`,
   [
     l1Ids.map((id, i) => id || "tmp-" + l1Slugs[i]),
     l1Slugs,
@@ -123,7 +123,7 @@ await c.query(
      "nameRu" = excluded."nameRu",
      "nameEn" = excluded."nameEn",
      published = true,
-     "updatedAt" = now()
+     "updatedAt" = now()`,
   [l2Ids, l2Slugs, l2Ru, l2En, l2Parent, l2Sort]
 );
 

@@ -2,7 +2,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getLocale, isLocale, t, resultsLabel } from "@/lib/i18n";
 import { productSearchWhere } from "@/lib/search";
-import { junkProductPrismaOr } from "@/lib/content-filter";
+import { publicProductWhere } from "@/lib/content-filter";
 import { ProductCard } from "@/components/ProductCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
@@ -16,8 +16,7 @@ function cachedSearch(query: string) {
     async () =>
       prisma.product.findMany({
         where: {
-          published: true,
-          NOT: { OR: junkProductPrismaOr },
+          ...publicProductWhere,
           ...productSearchWhere(query),
         },
         take: 48,

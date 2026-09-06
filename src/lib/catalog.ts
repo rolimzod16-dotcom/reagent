@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { publicProductWhere } from "@/lib/content-filter";
 
 export type CategoryTreeNode = {
   id: string;
@@ -50,7 +51,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
     }),
     prisma.product.groupBy({
       by: ["categoryId"],
-      where: { published: true },
+      where: publicProductWhere,
       _count: { _all: true },
     }),
   ]);
