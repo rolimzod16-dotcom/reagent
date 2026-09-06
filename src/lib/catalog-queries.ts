@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCategoryTree, getCategoryWithAncestry } from "@/lib/catalog";
-import { isJunkText, junkProductPrismaOr } from "@/lib/content-filter";
+import { isJunkText, publicProductWhere } from "@/lib/content-filter";
 import { productSearchWhere } from "@/lib/search";
 
 function getManufacturersForScope(categoryIds?: string[]) {
@@ -14,7 +14,7 @@ function getManufacturersForScope(categoryIds?: string[]) {
           published: true,
           products: {
             some: {
-              published: true,
+              ...publicProductWhere,
               ...(ids.length ? { categoryId: { in: ids } } : {}),
             },
           },
@@ -44,8 +44,7 @@ async function fetchCatalogProducts(opts: {
       : {};
 
   const where = {
-    published: true,
-    NOT: { OR: junkProductPrismaOr },
+    ...publicProductWhere,
     ...categoryFilter,
     ...(opts.manufacturer
       ? { manufacturer: { slug: opts.manufacturer } }
@@ -176,9 +175,8 @@ export function getHomePagePayload() {
         [
           prisma.product.findMany({
             where: {
-              published: true,
+              ...publicProductWhere,
               featured: true,
-              NOT: { OR: junkProductPrismaOr },
             },
             take: 16,
             include: {
@@ -191,19 +189,16 @@ export function getHomePagePayload() {
           prisma.manufacturer.findMany({
             where: {
               published: true,
-              products: { some: { published: true } },
+              products: { some: publicProductWhere },
             },
             take: 16,
             include: {
-              _count: { select: { products: { where: { published: true } } } },
+              _count: { select: { products: { where: publicProductWhere } } },
             },
             orderBy: { products: { _count: "desc" } },
           }),
           prisma.product.count({
-            where: {
-              published: true,
-              NOT: { OR: junkProductPrismaOr },
-            },
+            where: publicProductWhere,
           }),
           getCategoryTree(),
         ]
@@ -254,8 +249,8 @@ export function getHomePagePayload() {
 export function getProductPagePayload(slug: string) {
   return unstable_cache(
     async () => {
-      const product = await prisma.product.findUnique({
-        where: { slug },
+      const product = await prisma.product.findFirst({
+        where: { slug, ...publicProductWhere },
         include: {
           category: true,
           manufacturer: true,
@@ -264,14 +259,13 @@ export function getProductPagePayload(slug: string) {
           specifications: { orderBy: { sortOrder: "asc" } },
         },
       });
-      if (!product || !product.published) return null;
+      if (!product) return null;
 
       const related = await prisma.product.findMany({
         where: {
-          published: true,
+          ...publicProductWhere,
           categoryId: product.categoryId,
           id: { not: product.id },
-          NOT: { OR: junkProductPrismaOr },
         },
         take: 4,
         include: {
@@ -312,9 +306,8 @@ export function getBrandPagePayload(opts: {
       if (isJunkText(brand.slug) || isJunkText(brand.name)) return null;
 
       const where = {
-        published: true,
+        ...publicProductWhere,
         manufacturerId: brand.id,
-        NOT: { OR: junkProductPrismaOr },
       };
       const [total, products] = await Promise.all([
         prisma.product.count({ where }),

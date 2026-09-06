@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { locales } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site";
-import { isJunkText } from "@/lib/content-filter";
+import { isJunkText, publicProductWhere } from "@/lib/content-filter";
 
 export const revalidate = 3600;
 
@@ -60,7 +60,7 @@ const getSitemapEntries = unstable_cache(
     try {
       const [products, categories, brands, articles] = await Promise.all([
         prisma.product.findMany({
-          where: { published: true },
+          where: publicProductWhere,
           select: { slug: true, nameRu: true, updatedAt: true },
           take: 4000,
           orderBy: { updatedAt: "desc" },

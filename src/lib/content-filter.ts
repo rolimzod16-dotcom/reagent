@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 /** Test / placeholder records that should not appear on the storefront or in SEO. */
 
 export function isJunkText(value?: string | null): boolean {
@@ -18,13 +20,32 @@ export function isJunkText(value?: string | null): boolean {
   return false;
 }
 
-/** Prisma clause: extra belt after DB unpublish. */
-export const junkProductPrismaOr = [
+/** Prisma clauses for non-nullable product fields. */
+const junkProductPrismaOr = [
   { nameRu: { contains: "qwerty", mode: "insensitive" as const } },
   { nameEn: { contains: "qwerty", mode: "insensitive" as const } },
   { slug: { contains: "qwerty" } },
   { slug: { startsWith: "1212" } },
   { nameRu: { startsWith: "123456" } },
   { nameRu: { startsWith: "1212" } },
-  { sku: { startsWith: "123456" } },
 ];
+
+/**
+ * Storefront visibility filter.
+ *
+ * Keep the nullable SKU check outside `NOT (a OR b OR sku LIKE ...)`.
+ * PostgreSQL's three-valued logic turns that expression into NULL when SKU is
+ * NULL, which previously hid every otherwise-valid product without an SKU.
+ */
+export const publicProductWhere = {
+  published: true,
+  AND: [
+    { NOT: { OR: junkProductPrismaOr } },
+    {
+      OR: [
+        { sku: null },
+        { NOT: { sku: { startsWith: "123456" } } },
+      ],
+    },
+  ],
+} satisfies Prisma.ProductWhereInput;
