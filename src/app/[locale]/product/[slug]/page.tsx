@@ -20,12 +20,21 @@ import { getProductImageUrl } from "@/lib/product-image";
 export const revalidate = 300;
 export const maxDuration = 20;
 
+function decodeRouteSlug(slug: string): string {
+  try {
+    return decodeURIComponent(slug);
+  } catch {
+    return slug;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { locale: raw, slug } = await params;
+  const { locale: raw, slug: rawSlug } = await params;
+  const slug = decodeRouteSlug(rawSlug);
   if (!isLocale(raw)) return {};
   const locale = getLocale({ locale: raw });
   const data = await getProductPagePayload(slug);
@@ -58,7 +67,8 @@ export default async function ProductPage({
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { locale: raw, slug } = await params;
+  const { locale: raw, slug: rawSlug } = await params;
+  const slug = decodeRouteSlug(rawSlug);
   if (!isLocale(raw)) notFound();
   const locale = getLocale({ locale: raw });
 
