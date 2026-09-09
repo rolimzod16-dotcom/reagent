@@ -4,6 +4,7 @@ import { Locale, field } from "@/lib/i18n";
 import { QuoteButton } from "./QuoteButton";
 import { AddToCartButton } from "./AddToCartButton";
 import { displayPrice } from "@/lib/price";
+import { getProductImageUrl } from "@/lib/product-image";
 
 type ProductCardProps = {
   locale: Locale;
@@ -29,6 +30,7 @@ export function ProductCard({ locale, product }: ProductCardProps) {
   const name = field(locale, product.nameRu, product.nameEn);
   const short = field(locale, product.shortRu, product.shortEn);
   const img = product.images[0];
+  const imageUrl = getProductImageUrl(product);
   const price = displayPrice(product, locale);
 
   return (
@@ -37,10 +39,10 @@ export function ProductCard({ locale, product }: ProductCardProps) {
         href={`/${locale}/product/${product.slug}`}
         className="relative aspect-[4/3] overflow-hidden bg-white"
       >
-        {img ? (
+        {imageUrl ? (
           <Image
-            src={img.url}
-            alt={field(locale, img.altRu, img.altEn) || name}
+            src={imageUrl}
+            alt={field(locale, img?.altRu, img?.altEn) || name}
             fill
             className="img-zoom object-contain p-3"
             sizes="(max-width: 768px) 100vw, 25vw"
@@ -87,7 +89,7 @@ export function ProductCard({ locale, product }: ProductCardProps) {
               productId={product.id}
               productName={name}
               productSku={product.sku || undefined}
-              imageUrl={img?.url}
+              imageUrl={imageUrl}
               slug={product.slug}
               compact
             />
