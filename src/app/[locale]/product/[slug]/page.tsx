@@ -15,6 +15,7 @@ import { buildPageMetadata, productJsonLd } from "@/lib/seo";
 import { SITE_DOMAIN } from "@/lib/site";
 import { displayPrice } from "@/lib/price";
 import { JsonLd } from "@/components/JsonLd";
+import { getProductImageUrl } from "@/lib/product-image";
 
 export const revalidate = 300;
 export const maxDuration = 20;
@@ -67,13 +68,16 @@ export default async function ProductPage({
 
   const name = field(locale, product.nameRu, product.nameEn);
   const img = product.images[0];
+  const imageUrl = getProductImageUrl(product);
 
   const jsonLd = productJsonLd({
     name,
     description: field(locale, product.shortRu, product.shortEn),
     sku: product.sku,
     brand: product.manufacturer?.name,
-    image: img?.url,
+    image: imageUrl.startsWith("http")
+      ? imageUrl
+      : `https://${SITE_DOMAIN}${imageUrl}`,
     path: `/${locale}/product/${product.slug}`,
   });
 
@@ -98,10 +102,10 @@ export default async function ProductPage({
 
       <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:gap-14">
         <div className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-bg-soft shadow-sm">
-          {img ? (
+          {imageUrl ? (
             <Image
-              src={img.url}
-              alt={field(locale, img.altRu, img.altEn) || name}
+              src={imageUrl}
+              alt={field(locale, img?.altRu, img?.altEn) || name}
               fill
               priority
               className="object-cover"
@@ -149,7 +153,7 @@ export default async function ProductPage({
                 productId={product.id}
                 productName={name}
                 productSku={product.sku || undefined}
-                imageUrl={img?.url}
+                imageUrl={imageUrl}
                 slug={product.slug}
               />
               <QuoteButton
