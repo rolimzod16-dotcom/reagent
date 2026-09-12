@@ -89,9 +89,12 @@ function descendantIdsFrom(
   rootId: string
 ): string[] {
   const out: string[] = [];
+  const visited = new Set<string>([rootId]);
   const queue = [...(childrenMap[rootId] || [])];
   while (queue.length) {
     const id = queue.shift()!;
+    if (visited.has(id)) continue;
+    visited.add(id);
     out.push(id);
     for (const child of childrenMap[id] || []) queue.push(child);
   }
