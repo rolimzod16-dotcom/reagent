@@ -17,7 +17,7 @@ import { displayPrice } from "@/lib/price";
 import { JsonLd } from "@/components/JsonLd";
 import { getProductImageUrl } from "@/lib/product-image";
 
-export const revalidate = 300;
+export const revalidate = 3600;
 export const maxDuration = 20;
 
 function decodeRouteSlug(slug: string): string {
@@ -45,13 +45,15 @@ export async function generateMetadata({
     field(locale, product.shortRu, product.shortEn) ||
     field(locale, product.descriptionRu, product.descriptionEn);
   const baseDesc = (desc || name).slice(0, 120);
+  const identifier = product.sku || product.model;
+  const titleName = identifier ? `${name} — ${identifier}` : name;
   return buildPageMetadata({
     locale,
     path: `/product/${slug}`,
     title:
       locale === "ru"
-        ? `${name} — купить / запрос цены | ${SITE_DOMAIN}`
-        : `${name} — quote request | ${SITE_DOMAIN}`,
+        ? `${titleName} — купить / запрос цены | ${SITE_DOMAIN}`
+        : `${titleName} — quote request | ${SITE_DOMAIN}`,
     description:
       locale === "ru"
         ? `${baseDesc}. Поставка в Таджикистане (Душанбе). ${product.sku ? `Арт. ${product.sku}. ` : ""}Цена по запросу. ${SITE_DOMAIN}`

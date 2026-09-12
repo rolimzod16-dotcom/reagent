@@ -12,13 +12,17 @@ function dayStamp(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+function publicUrl(path: string): string {
+  return new URL(path, `${SITE_URL}/`).href;
+}
+
 function langs(path: string): NonNullable<MetadataRoute.Sitemap[0]["alternates"]> {
   const p = path.startsWith("/") ? path : `/${path}`;
   return {
     languages: {
-      ru: `${SITE_URL}/ru${p === "/" ? "" : p}`,
-      en: `${SITE_URL}/en${p === "/" ? "" : p}`,
-      "x-default": `${SITE_URL}/ru${p === "/" ? "" : p}`,
+      ru: publicUrl(`/ru${p === "/" ? "" : p}`),
+      en: publicUrl(`/en${p === "/" ? "" : p}`),
+      "x-default": publicUrl(`/ru${p === "/" ? "" : p}`),
     },
   };
 }
@@ -60,7 +64,7 @@ const getSitemapEntries = unstable_cache(
       for (const item of staticPaths) {
         const path = item.path;
         entries.push({
-          url: `${SITE_URL}/${locale}${path}`,
+          url: publicUrl(`/${locale}${path}`),
           lastModified: now,
           changeFrequency: item.freq,
           priority: item.priority,
@@ -107,7 +111,7 @@ const getSitemapEntries = unstable_cache(
       for (const locale of locales) {
         for (const p of cleanProducts) {
           entries.push({
-            url: `${SITE_URL}/${locale}/product/${p.slug}`,
+            url: publicUrl(`/${locale}/product/${p.slug}`),
             lastModified: dayStamp(p.updatedAt),
             changeFrequency: "weekly",
             priority: 0.8,
@@ -116,7 +120,7 @@ const getSitemapEntries = unstable_cache(
         }
         for (const c of publicCategories) {
           entries.push({
-            url: `${SITE_URL}/${locale}/catalog/${c.slug}`,
+            url: publicUrl(`/${locale}/catalog/${c.slug}`),
             lastModified: dayStamp(c.updatedAt),
             changeFrequency: "weekly",
             priority: 0.75,
@@ -125,7 +129,7 @@ const getSitemapEntries = unstable_cache(
         }
         for (const b of cleanBrands) {
           entries.push({
-            url: `${SITE_URL}/${locale}/brands/${b.slug}`,
+            url: publicUrl(`/${locale}/brands/${b.slug}`),
             lastModified: dayStamp(b.updatedAt),
             changeFrequency: "monthly",
             priority: 0.55,
@@ -134,7 +138,7 @@ const getSitemapEntries = unstable_cache(
         }
         for (const a of articles) {
           entries.push({
-            url: `${SITE_URL}/${locale}/articles/${a.slug}`,
+            url: publicUrl(`/${locale}/articles/${a.slug}`),
             lastModified: dayStamp(a.updatedAt),
             changeFrequency: "monthly",
             priority: 0.5,
@@ -148,7 +152,7 @@ const getSitemapEntries = unstable_cache(
 
     return entries;
   },
-  ["sitemap-v10"],
+  ["sitemap-v11"],
   { revalidate: 3600, tags: ["catalog"] }
 );
 

@@ -276,8 +276,8 @@ export function getProductPagePayload(slug: string) {
 
       return { product, related };
     },
-    ["product-page-v5", slug],
-    { revalidate: 300, tags: ["catalog"] }
+    ["product-page-v6", slug],
+    { revalidate: 3600, tags: [`product:${slug}`] }
   )();
 }
 

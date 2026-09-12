@@ -57,6 +57,7 @@ export default function AdminSolutionsPage() {
   }, [gate.unlocked, gate.adminKey]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch after the admin gate unlocks
     if (gate.unlocked) load();
   }, [gate.unlocked, load]);
 

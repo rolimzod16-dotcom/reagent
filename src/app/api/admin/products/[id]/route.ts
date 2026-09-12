@@ -14,6 +14,7 @@ import { parsePriceAmount, PRICE_CURRENCIES } from "@/lib/price";
 function bustCatalogCache(slug?: string) {
   try {
     revalidateTag("catalog", "max");
+    if (slug) revalidateTag(`product:${slug}`, "max");
     revalidatePath("/ru");
     revalidatePath("/en");
     revalidatePath("/ru/catalog");

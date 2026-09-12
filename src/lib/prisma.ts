@@ -38,9 +38,11 @@ function createPrisma() {
     new Pool({
       connectionString: pgConnectionString(raw),
       ssl: { rejectUnauthorized: false },
-      max: isBuild ? 3 : 1,
-      maxUses: serverless || !isBuild ? 1 : 100,
-      idleTimeoutMillis: isBuild ? 20_000 : 5_000,
+      // Reuse warm Vercel connections instead of reopening TLS for every query.
+      // Keep the pool deliberately small because each function instance owns one.
+      max: isBuild ? 3 : 2,
+      maxUses: serverless ? 1 : 500,
+      idleTimeoutMillis: isBuild ? 20_000 : 30_000,
       connectionTimeoutMillis: isBuild ? 20_000 : 8_000,
       allowExitOnIdle: true,
     });

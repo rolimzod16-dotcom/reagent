@@ -17,6 +17,8 @@ export function useAdminKey() {
         ? sessionStorage.getItem(KEY) || ""
         : "";
     if (k) {
+      // Session storage is the external source synchronized by this effect.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAdminKey(k);
       setUnlocked(true);
     }

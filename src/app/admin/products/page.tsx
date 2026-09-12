@@ -191,6 +191,7 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     if (unlocked) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch after the admin gate unlocks
       loadCats();
       loadProducts();
     }

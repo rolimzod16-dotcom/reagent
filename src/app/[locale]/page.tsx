@@ -20,7 +20,6 @@ import {
   ChevronRight,
   Wrench,
   FlaskConical,
-  Package,
 } from "lucide-react";
 import { CatalogDownloadLink } from "@/components/CatalogDownloadLink";
 

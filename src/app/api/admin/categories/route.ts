@@ -145,7 +145,7 @@ export async function POST(req: Request) {
       ? sanitizeText(data.nameEn, 160)
       : nameRu;
 
-    let parentId: string | null = data.parentId || null;
+    const parentId: string | null = data.parentId || null;
     let parentImage: string | null = null;
     if (parentId) {
       const parent = await prisma.category.findUnique({

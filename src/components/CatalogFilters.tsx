@@ -19,7 +19,6 @@ type Props = {
     sort?: string;
     q?: string;
   };
-  basePath?: string;
   directoryMode?: boolean;
 };
 
@@ -28,7 +27,6 @@ export function CatalogFilters({
   categories,
   manufacturers,
   current,
-  basePath,
   directoryMode = false,
 }: Props) {
   const router = useRouter();

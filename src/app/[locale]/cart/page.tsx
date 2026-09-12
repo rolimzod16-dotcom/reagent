@@ -39,13 +39,14 @@ export default function CartPage() {
   const [items, setItems] = useState<QuoteCartItem[]>([]);
   const [user, setUser] = useState<Profile | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [authHint, setAuthHint] = useState(false);
 
   function refresh() {
     setItems(loadQuoteCart());
   }
 
   useEffect(() => {
+    // Cart contents live in localStorage, so they are synchronized after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
     const sync = () => refresh();
     window.addEventListener("reagent-cart-change", sync);
@@ -216,13 +217,7 @@ export default function CartPage() {
               </div>
             ) : (
               <div className="mt-4 space-y-3">
-                <p
-                  className={`rounded-lg border px-3 py-2 text-sm ${
-                    authHint
-                      ? "border-amber-200 bg-amber-50 text-amber-900"
-                      : "border-line bg-white text-muted"
-                  }`}
-                >
+                <p className="rounded-lg border border-line bg-white px-3 py-2 text-sm text-muted">
                   {t(locale, "cart_auth_required")}
                 </p>
                 <div className="flex flex-col gap-2 sm:flex-row">

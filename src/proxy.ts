@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { defaultLocale, locales } from "@/lib/i18n";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Security headers on all responses
@@ -55,13 +55,17 @@ export function middleware(request: NextRequest) {
   // Do not cache authenticated API
   if (pathname.startsWith("/api/auth") || pathname.startsWith("/api/admin")) {
     response.headers.set("Cache-Control", "no-store");
+  } else if (/^\/(ru|en)\/product\/[^/]+$/.test(pathname)) {
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400"
+    );
   } else if (
     // Public storefront: CDN absorbs evening peak in TJ
     /^\/(ru|en)$/.test(pathname) ||
     /^\/(ru|en)\/(catalog|brands|articles|solutions|about|contact|faq|documents)(\/|$)/.test(
       pathname
     ) ||
-    /^\/(ru|en)\/product\/[^/]+$/.test(pathname) ||
     pathname === "/sitemap.xml"
   ) {
     if (!request.nextUrl.search) {

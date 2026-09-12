@@ -83,6 +83,8 @@ export function InquiryForm({
 
   useEffect(() => {
     if (isCart) {
+      // Form lines are synchronized from localStorage after mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setItems(loadQuoteCart());
     } else if (productName) {
       setItems([

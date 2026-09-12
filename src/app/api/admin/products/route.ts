@@ -14,9 +14,10 @@ import { isHttpUrl, normalizeImageUrl } from "@/lib/image-url";
 import { parsePriceAmount, PRICE_CURRENCIES } from "@/lib/price";
 import type { Prisma } from "@prisma/client";
 
-function bustCatalogCache() {
+function bustCatalogCache(slug?: string) {
   try {
     revalidateTag("catalog", "max");
+    if (slug) revalidateTag(`product:${slug}`, "max");
     revalidatePath("/ru");
     revalidatePath("/en");
     revalidatePath("/ru/catalog");
@@ -245,7 +246,7 @@ export async function POST(req: Request) {
       })),
     });
 
-    bustCatalogCache();
+    bustCatalogCache(product.slug);
     revalidatePath(`/ru/product/${product.slug}`);
     revalidatePath(`/en/product/${product.slug}`);
 

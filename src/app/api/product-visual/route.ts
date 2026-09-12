@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 function hashText(value: string): number {
   let hash = 2166136261;
   for (let i = 0; i < value.length; i++) {

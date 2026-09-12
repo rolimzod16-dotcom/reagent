@@ -3,9 +3,19 @@ import { getLocale, isLocale, t, field } from "@/lib/i18n";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 300;
 export const maxDuration = 30;
+
+function getArticle(slug: string) {
+  return unstable_cache(
+    () => prisma.article.findFirst({ where: { slug, published: true } }),
+    ["article-page-v2", slug],
+    { revalidate: 3600, tags: ["cms"] }
+  )();
+}
 
 export async function generateMetadata({
   params,
@@ -15,12 +25,15 @@ export async function generateMetadata({
   const { locale: raw, slug } = await params;
   if (!isLocale(raw)) return {};
   const locale = getLocale({ locale: raw });
-  const a = await prisma.article.findUnique({ where: { slug } });
+  const a = await getArticle(slug);
   if (!a) return {};
-  return {
-    title: field(locale, a.titleRu, a.titleEn),
-    description: field(locale, a.excerptRu, a.excerptEn) || undefined,
-  };
+  const title = field(locale, a.titleRu, a.titleEn);
+  return buildPageMetadata({
+    locale,
+    path: `/articles/${slug}`,
+    title,
+    description: field(locale, a.excerptRu, a.excerptEn) || title,
+  });
 }
 
 export default async function ArticlePage({
@@ -31,8 +44,8 @@ export default async function ArticlePage({
   const { locale: raw, slug } = await params;
   if (!isLocale(raw)) notFound();
   const locale = getLocale({ locale: raw });
-  const a = await prisma.article.findUnique({ where: { slug } });
-  if (!a || !a.published) notFound();
+  const a = await getArticle(slug);
+  if (!a) notFound();
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
