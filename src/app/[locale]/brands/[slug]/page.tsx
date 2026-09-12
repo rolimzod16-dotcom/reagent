@@ -13,24 +13,32 @@ type SP = Promise<{ page?: string }>;
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; slug: string }>;
+  searchParams: SP;
 }): Promise<Metadata> {
   const { locale: raw, slug } = await params;
   if (!isLocale(raw)) return {};
   const locale = getLocale({ locale: raw });
-  const data = await getBrandPagePayload({ slug, page: 1 });
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const data = await getBrandPagePayload({ slug, page });
   if (!data) return {};
+  const pageQuery = page > 1 ? `?page=${page}` : "";
+  const pageTitle = page > 1
+    ? `${data.brand.name} — ${locale === "ru" ? "страница" : "page"} ${page}`
+    : data.brand.name;
   return {
-    title: data.brand.name,
+    title: pageTitle,
     description:
       field(locale, data.brand.descriptionRu, data.brand.descriptionEn) ||
       data.brand.name,
     alternates: {
-      canonical: `/${locale}/brands/${slug}`,
+      canonical: `/${locale}/brands/${slug}${pageQuery}`,
       languages: {
-        ru: `/ru/brands/${slug}`,
-        en: `/en/brands/${slug}`,
+        ru: `/ru/brands/${slug}${pageQuery}`,
+        en: `/en/brands/${slug}${pageQuery}`,
       },
     },
   };

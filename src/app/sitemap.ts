@@ -82,7 +82,6 @@ const getSitemapEntries = unstable_cache(
           orderBy: { updatedAt: "desc" },
         }),
         prisma.category.findMany({
-          where: { published: true },
           select: { slug: true, updatedAt: true },
           orderBy: { sortOrder: "asc" },
         }),
@@ -152,7 +151,7 @@ const getSitemapEntries = unstable_cache(
 
     return entries;
   },
-  ["sitemap-v11"],
+  ["sitemap-v12"],
   { revalidate: 3600, tags: ["catalog"] }
 );
 

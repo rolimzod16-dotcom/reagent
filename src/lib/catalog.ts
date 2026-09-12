@@ -37,7 +37,10 @@ function rootKey(parentId: string | null) {
 async function fetchCategoryGraph(): Promise<CategoryGraph> {
   const [all, grouped] = await Promise.all([
     prisma.category.findMany({
-      where: { published: true },
+      // Imported public products can still reference a category whose legacy
+      // `published` flag is false. Keep those categories navigable so product
+      // breadcrumbs never lead to a missing catalog page. Empty categories
+      // are still removed by buildTreeNodes below.
       select: {
         id: true,
         parentId: true,
@@ -77,7 +80,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v15"],
+  ["category-graph-v16"],
   { revalidate: 120, tags: ["catalog"] }
 );
 
