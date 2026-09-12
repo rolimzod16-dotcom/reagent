@@ -77,7 +77,12 @@ const getSitemapEntries = unstable_cache(
       const [products, categories, brands, articles, categoryTree] = await Promise.all([
         prisma.product.findMany({
           where: publicProductWhere,
-          select: { slug: true, nameRu: true, updatedAt: true },
+          select: {
+            slug: true,
+            nameRu: true,
+            updatedAt: true,
+            category: { select: { slug: true } },
+          },
           take: 4000,
           orderBy: { updatedAt: "desc" },
         }),
@@ -103,6 +108,9 @@ const getSitemapEntries = unstable_cache(
         (b) => !isJunkText(b.slug) && !isJunkText(b.name)
       );
       const publicCategorySlugs = collectCategorySlugs(categoryTree);
+      for (const product of cleanProducts) {
+        publicCategorySlugs.add(product.category.slug);
+      }
       const publicCategories = categories.filter((c) =>
         publicCategorySlugs.has(c.slug)
       );
@@ -151,7 +159,7 @@ const getSitemapEntries = unstable_cache(
 
     return entries;
   },
-  ["sitemap-v12"],
+  ["sitemap-v13"],
   { revalidate: 3600, tags: ["catalog"] }
 );
 
