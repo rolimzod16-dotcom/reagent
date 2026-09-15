@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Locale, field, resultsLabel, subcatsLabel } from "@/lib/i18n";
-import { catalogImage } from "@/lib/catalog-images";
+import { catalogImage, defaultCatalogImage } from "@/lib/catalog-images";
 import { ChevronRight } from "lucide-react";
 import { ResilientImage } from "./ResilientImage";
 
@@ -46,17 +46,8 @@ export function CatalogShowcase({
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => {
           const name = field(locale, item.nameRu, item.nameEn);
-          const generatedFallback = `/api/product-visual?${new URLSearchParams({
-            slug: item.slug,
-            name,
-          }).toString()}`;
-          const selectedImage = catalogImage(item.slug, item.image);
-          const isSharedCatalogPlaceholder =
-            selectedImage.startsWith("/catalog/") &&
-            !selectedImage.startsWith("/catalog/cats/");
-          const src = isSharedCatalogPlaceholder
-            ? generatedFallback
-            : selectedImage;
+          const src = catalogImage(item.slug, item.image);
+          const fallbackSrc = defaultCatalogImage(item.slug);
           const kids = (item.children || []).filter(
             (c) => c.count === undefined || c.count > 0 || Boolean(c.image)
           );
@@ -74,7 +65,7 @@ export function CatalogShowcase({
               >
                 <ResilientImage
                   src={src}
-                  fallbackSrc={generatedFallback}
+                  fallbackSrc={fallbackSrc}
                   alt={name}
                   className="object-cover transition duration-500 group-hover:scale-[1.04]"
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
