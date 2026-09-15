@@ -32,8 +32,8 @@ export function CatalogFilters({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [openParents, setOpenParents] = useState<Set<string>>(() =>
-    slugsWithChildren(categories)
+  const [openParents, setOpenParents] = useState<Set<string>>(
+    () => new Set()
   );
 
   function toggleParent(slug: string) {
@@ -216,25 +216,6 @@ export function CatalogFilters({
   );
 }
 
-function slugsWithChildren(
-  nodes: FilterCategory[],
-  acc = new Set<string>()
-): Set<string> {
-  for (const n of nodes) {
-    if (n.children?.length) {
-      acc.add(n.slug);
-      slugsWithChildren(n.children, acc);
-    }
-  }
-  return acc;
-}
-
-function branchContains(node: FilterCategory, slug?: string): boolean {
-  if (!slug) return false;
-  if (node.slug === slug) return true;
-  return node.children.some((ch) => branchContains(ch, slug));
-}
-
 function FilterBranch({
   node,
   depth,
@@ -252,8 +233,8 @@ function FilterBranch({
 }) {
   const hasChildren = node.children.length > 0;
   const active = current === node.slug;
-  const childActive = !active && branchContains(node, current);
-  const expanded = openParents.has(node.slug) || childActive;
+  const expanded = openParents.has(node.slug);
+  const childrenId = `catalog-children-${node.slug}`;
   const pad = depth === 0 ? "px-3 py-2.5 text-sm" : "px-2.5 py-2 text-[13px]";
 
   return (
@@ -264,9 +245,7 @@ function FilterBranch({
           className={`flex min-w-0 flex-1 items-center justify-between rounded-xl ${pad} transition ${
             active
               ? "bg-green-soft font-semibold text-green"
-              : childActive
-                ? "font-semibold text-green"
-                : depth === 0
+              : depth === 0
                   ? "text-slate-700 hover:bg-slate-50"
                   : "text-slate-600 hover:bg-slate-50 hover:text-green"
           }`}
@@ -281,7 +260,9 @@ function FilterBranch({
             type="button"
             onClick={() => toggleParent(node.slug)}
             className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-green"
-            aria-label="toggle"
+            aria-expanded={expanded}
+            aria-controls={childrenId}
+            aria-label={expanded ? "Свернуть подкатегории" : "Развернуть подкатегории"}
           >
             <ChevronDown
               className={`h-4 w-4 transition ${expanded ? "rotate-180" : ""}`}
@@ -290,7 +271,10 @@ function FilterBranch({
         )}
       </div>
       {hasChildren && expanded && (
-        <ul className="ml-3 mt-0.5 space-y-0.5 border-l border-line pl-2">
+        <ul
+          id={childrenId}
+          className="ml-3 mt-0.5 space-y-0.5 border-l border-line pl-2"
+        >
           {node.children.map((ch) => (
             <FilterBranch
               key={ch.slug}
