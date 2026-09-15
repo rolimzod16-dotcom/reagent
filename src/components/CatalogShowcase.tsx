@@ -50,9 +50,13 @@ export function CatalogShowcase({
             slug: item.slug,
             name,
           }).toString()}`;
-          const src = item.image
-            ? catalogImage(item.slug, item.image)
-            : generatedFallback;
+          const selectedImage = catalogImage(item.slug, item.image);
+          const isSharedCatalogPlaceholder =
+            selectedImage.startsWith("/catalog/") &&
+            !selectedImage.startsWith("/catalog/cats/");
+          const src = isSharedCatalogPlaceholder
+            ? generatedFallback
+            : selectedImage;
           const kids = (item.children || []).filter(
             (c) => c.count === undefined || c.count > 0 || Boolean(c.image)
           );
