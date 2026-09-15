@@ -46,11 +46,13 @@ export function CatalogShowcase({
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {items.map((item) => {
           const name = field(locale, item.nameRu, item.nameEn);
-          const src = catalogImage(item.slug, item.image);
           const generatedFallback = `/api/product-visual?${new URLSearchParams({
             slug: item.slug,
             name,
           }).toString()}`;
+          const src = item.image
+            ? catalogImage(item.slug, item.image)
+            : generatedFallback;
           const kids = (item.children || []).filter(
             (c) => c.count === undefined || c.count > 0 || Boolean(c.image)
           );
