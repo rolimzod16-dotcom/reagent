@@ -32,6 +32,7 @@ export function CatalogFilters({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Keep the navigation compact until the visitor chooses a branch.
   const [openParents, setOpenParents] = useState<Set<string>>(
     () => new Set()
   );
