@@ -41,6 +41,7 @@ const GENERIC_ROOT = new Set<string>(Object.values(FILES));
 
 function isForeignCatalogPhoto(url?: string | null): boolean {
   if (!url) return true;
+  if (url.startsWith("/api/product-visual")) return true;
   if (url.startsWith("/catalog/cats/")) return false;
   if (url.startsWith("/catalog/")) return GENERIC_ROOT.has(url);
   const u = url.toLowerCase();
