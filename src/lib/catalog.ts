@@ -73,7 +73,11 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 
   const all: CatRow[] = categoryRows.map(({ products, ...category }) => ({
     ...category,
-    image: products[0] ? getProductImageUrl(products[0]) : category.image,
+    image: products[0]
+      ? getProductImageUrl(products[0])
+      : category.image?.startsWith("/catalog/cats/")
+        ? category.image
+        : null,
   }));
 
   const directCount: Record<string, number> = {};
@@ -97,7 +101,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v17"],
+  ["category-graph-v18"],
   { revalidate: 120, tags: ["catalog"] }
 );
 
