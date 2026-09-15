@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { publicProductWhere } from "@/lib/content-filter";
+import { getProductImageUrl } from "@/lib/product-image";
 
 export type CategoryTreeNode = {
   id: string;
@@ -35,7 +36,7 @@ function rootKey(parentId: string | null) {
 }
 
 async function fetchCategoryGraph(): Promise<CategoryGraph> {
-  const [all, grouped] = await Promise.all([
+  const [categoryRows, grouped] = await Promise.all([
     prisma.category.findMany({
       // Imported public products can still reference a category whose legacy
       // `published` flag is false. Keep those categories navigable so product
@@ -49,6 +50,17 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
         nameEn: true,
         image: true,
         sortOrder: true,
+        products: {
+          where: publicProductWhere,
+          orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+          take: 1,
+          select: {
+            slug: true,
+            nameRu: true,
+            nameEn: true,
+            images: { orderBy: { sortOrder: "asc" }, take: 1 },
+          },
+        },
       },
       orderBy: { sortOrder: "asc" },
     }),
@@ -58,6 +70,11 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
       _count: { _all: true },
     }),
   ]);
+
+  const all: CatRow[] = categoryRows.map(({ products, ...category }) => ({
+    ...category,
+    image: products[0] ? getProductImageUrl(products[0]) : category.image,
+  }));
 
   const directCount: Record<string, number> = {};
   for (const g of grouped) {
@@ -80,7 +97,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v16"],
+  ["category-graph-v17"],
   { revalidate: 120, tags: ["catalog"] }
 );
 
@@ -135,7 +152,7 @@ function buildTreeNodes(
       slug: c.slug,
       nameRu: c.nameRu,
       nameEn: c.nameEn,
-      image: c.image,
+      image: c.image || children[0]?.image || null,
       count,
       childCount: children.length,
       children,

@@ -7,7 +7,6 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import { InquiryForm } from "@/components/InquiryForm";
 import { QuoteFormAnchor } from "@/components/QuoteFormAnchor";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
@@ -15,7 +14,8 @@ import { buildPageMetadata, productJsonLd } from "@/lib/seo";
 import { SITE_DOMAIN } from "@/lib/site";
 import { displayPrice } from "@/lib/price";
 import { JsonLd } from "@/components/JsonLd";
-import { getProductImageUrl } from "@/lib/product-image";
+import { generatedProductImageUrl, getProductImageUrl } from "@/lib/product-image";
+import { ResilientImage } from "@/components/ResilientImage";
 
 export const revalidate = 3600;
 export const maxDuration = 20;
@@ -81,6 +81,7 @@ export default async function ProductPage({
   const name = field(locale, product.nameRu, product.nameEn);
   const img = product.images[0];
   const imageUrl = getProductImageUrl(product);
+  const fallbackImageUrl = generatedProductImageUrl(product);
 
   const jsonLd = productJsonLd({
     name,
@@ -115,14 +116,13 @@ export default async function ProductPage({
       <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:gap-14">
         <div className="relative aspect-square overflow-hidden rounded-2xl border border-line bg-bg-soft shadow-sm">
           {imageUrl ? (
-            <Image
+            <ResilientImage
               src={imageUrl}
+              fallbackSrc={fallbackImageUrl}
               alt={field(locale, img?.altRu, img?.altEn) || name}
-              fill
               priority
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
-              unoptimized
             />
           ) : null}
         </div>

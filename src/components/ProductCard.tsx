@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Locale, field } from "@/lib/i18n";
 import { QuoteButton } from "./QuoteButton";
 import { AddToCartButton } from "./AddToCartButton";
 import { displayPrice } from "@/lib/price";
-import { getProductImageUrl } from "@/lib/product-image";
+import { generatedProductImageUrl, getProductImageUrl } from "@/lib/product-image";
+import { ResilientImage } from "./ResilientImage";
 
 type ProductCardProps = {
   locale: Locale;
@@ -31,6 +31,7 @@ export function ProductCard({ locale, product }: ProductCardProps) {
   const short = field(locale, product.shortRu, product.shortEn);
   const img = product.images[0];
   const imageUrl = getProductImageUrl(product);
+  const fallbackImageUrl = generatedProductImageUrl(product);
   const price = displayPrice(product, locale);
 
   return (
@@ -40,13 +41,12 @@ export function ProductCard({ locale, product }: ProductCardProps) {
         className="relative aspect-[4/3] overflow-hidden bg-white"
       >
         {imageUrl ? (
-          <Image
+          <ResilientImage
             src={imageUrl}
+            fallbackSrc={fallbackImageUrl}
             alt={field(locale, img?.altRu, img?.altEn) || name}
-            fill
             className="img-zoom object-contain p-3"
             sizes="(max-width: 768px) 100vw, 25vw"
-            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center text-3xl font-bold text-slate-300">
