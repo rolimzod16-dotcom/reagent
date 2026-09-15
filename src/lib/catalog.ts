@@ -101,7 +101,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v18"],
+  ["category-graph-v19"],
   { revalidate: 120, tags: ["catalog"] }
 );
 
@@ -132,6 +132,23 @@ function subtreeCountFrom(
     n += directCount[id] || 0;
   }
   return n;
+}
+
+function subtreeImageFrom(
+  graph: CategoryGraph,
+  categoryId: string,
+  visited = new Set<string>()
+): string | null {
+  if (visited.has(categoryId)) return null;
+  visited.add(categoryId);
+
+  const category = graph.all.find((item) => item.id === categoryId);
+  if (category?.image) return category.image;
+  for (const childId of graph.childrenMap[categoryId] || []) {
+    const image = subtreeImageFrom(graph, childId, visited);
+    if (image) return image;
+  }
+  return null;
 }
 
 /** All published descendant category IDs (any depth). */
@@ -194,7 +211,7 @@ export async function getCategoryWithAncestry(slug: string) {
         slug: g.slug,
         nameRu: g.nameRu,
         nameEn: g.nameEn,
-        image: g.image,
+        image: subtreeImageFrom(graph, g.id),
       }));
 
     return [{
@@ -202,7 +219,7 @@ export async function getCategoryWithAncestry(slug: string) {
       slug: ch.slug,
       nameRu: ch.nameRu,
       nameEn: ch.nameEn,
-      image: ch.image,
+      image: subtreeImageFrom(graph, ch.id),
       parentId: ch.parentId,
       sortOrder: ch.sortOrder,
       count,
