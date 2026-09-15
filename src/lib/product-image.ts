@@ -96,17 +96,25 @@ function normalizeImageUrl(url: string): string {
   }
 }
 
-export function getProductImageUrl(product: {
+function isUnreliableStockImage(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return (
+      host === "images.unsplash.com" ||
+      host.endsWith(".unsplash.com") ||
+      host.endsWith(".pexels.com") ||
+      host.endsWith(".pixabay.com")
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function generatedProductImageUrl(product: {
   slug: string;
   nameRu: string;
   nameEn: string;
-  images: { url: string }[];
 }): string {
-  const source = product.images[0]?.url?.trim();
-  if (source && !duplicatedSourceImages.has(normalizeImageUrl(source))) {
-    return source;
-  }
-
   const params = new URLSearchParams({
     slug: product.slug,
     name: product.nameRu || product.nameEn || "REAGENT",
@@ -114,9 +122,30 @@ export function getProductImageUrl(product: {
   return `/api/product-visual?${params.toString()}`;
 }
 
+export function getProductImageUrl(product: {
+  slug: string;
+  nameRu: string;
+  nameEn: string;
+  images: { url: string }[];
+}): string {
+  const source = product.images[0]?.url?.trim();
+  if (
+    source &&
+    !duplicatedSourceImages.has(normalizeImageUrl(source)) &&
+    !isUnreliableStockImage(source)
+  ) {
+    return source;
+  }
+  return generatedProductImageUrl(product);
+}
+
 export function productUsesGeneratedImage(product: {
   images: { url: string }[];
 }): boolean {
   const source = product.images[0]?.url?.trim();
-  return !source || duplicatedSourceImages.has(normalizeImageUrl(source));
+  return (
+    !source ||
+    duplicatedSourceImages.has(normalizeImageUrl(source)) ||
+    isUnreliableStockImage(source)
+  );
 }
