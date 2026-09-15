@@ -97,6 +97,9 @@ function normalizeImageUrl(url: string): string {
 }
 
 function isUnreliableStockImage(url: string): boolean {
+  if (/^\/catalog\/[^/]+\.(?:avif|jpe?g|png|webp)(?:\?|$)/i.test(url)) {
+    return true;
+  }
   try {
     const host = new URL(url).hostname.toLowerCase();
     return (
