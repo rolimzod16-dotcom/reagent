@@ -1,5 +1,8 @@
 const duplicatedSourceImages = new Set<string>([
   // Generated from the production catalog audit. Keep normalized source URLs here.
+  // Removed upstream Vector-Best files: use the resilient generated fallback.
+  "https://vector-best.ru/upload/resize_cache/iblock/983/y2vpgban46gymdottzb07km369v54u1o/400_550_1/klech_.jpg",
+  "https://vector-best.ru/upload/resize_cache/iblock/509/glsc5h0c071z7xx0uaal6s0zk0qs98yf/400_550_1/Kardiomarkery_.jpg",
   "https://www.deznet.ru/upload/dev2fun.imagecompress/webp/iblock/f06/n9nr3fq9e00re9l2sl9vvxu1okvpqr13.webp",
   "https://www.deznet.ru/upload/dev2fun.imagecompress/webp/iblock/d50/xux28rq9gpxkjucerp5tl2o1i1giirpe.webp",
   "https://www.deznet.ru/upload/dev2fun.imagecompress/webp/iblock/68b/47gnlh0l6viz1wdm1uym9b681bh9k0st.webp",
