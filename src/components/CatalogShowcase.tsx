@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Locale, field, resultsLabel, subcatsLabel } from "@/lib/i18n";
 import { catalogImage } from "@/lib/catalog-images";
 import { ChevronRight } from "lucide-react";
+import { ResilientImage } from "./ResilientImage";
 
 export type ShowcaseChild = {
   slug: string;
@@ -47,6 +47,10 @@ export function CatalogShowcase({
         {items.map((item) => {
           const name = field(locale, item.nameRu, item.nameEn);
           const src = catalogImage(item.slug, item.image);
+          const generatedFallback = `/api/product-visual?${new URLSearchParams({
+            slug: item.slug,
+            name,
+          }).toString()}`;
           const kids = (item.children || []).filter(
             (c) => c.count === undefined || c.count > 0 || Boolean(c.image)
           );
@@ -62,10 +66,10 @@ export function CatalogShowcase({
                 href={`/${locale}/catalog/${item.slug}`}
                 className="relative block aspect-[4/3] overflow-hidden bg-bg-soft"
               >
-                <Image
+                <ResilientImage
                   src={src}
+                  fallbackSrc={generatedFallback}
                   alt={name}
-                  fill
                   className="object-cover transition duration-500 group-hover:scale-[1.04]"
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
                 />
@@ -114,7 +118,17 @@ export function CatalogShowcase({
                     </li>
                   ) : null}
                 </ul>
-              ) : null}
+              ) : (
+                <div className="p-4">
+                  <Link
+                    href={`/${locale}/catalog/${item.slug}`}
+                    className="btn btn-outline w-full justify-center"
+                  >
+                    {locale === "ru" ? "Открыть товары" : "View products"}
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
             </article>
           );
         })}
