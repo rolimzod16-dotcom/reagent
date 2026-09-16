@@ -13,6 +13,8 @@ import {
   X,
   Save,
   Upload,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { AdminShell, useAdminKey } from "@/components/admin/AdminGate";
 import { CategoryPicker } from "@/components/admin/CategoryPicker";
@@ -84,6 +86,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -184,6 +188,7 @@ export default function AdminProductsPage() {
     }
     const data = await res.json();
     setProducts(data.products || []);
+    setSelected(new Set());
     setTotal(data.total || 0);
     setPages(data.pages || 1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -330,6 +335,70 @@ export default function AdminProductsPage() {
     loadProducts();
   }
 
+  function toggleSelected(id: string) {
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleCurrentPage() {
+    setSelected((previous) => {
+      const pageIds = products.map((product) => product.id);
+      const allSelected = pageIds.every((id) => previous.has(id));
+      const next = new Set(previous);
+      for (const id of pageIds) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  }
+
+  async function runBulkAction(
+    action: "publish" | "unpublish" | "delete"
+  ) {
+    if (!selected.size) return;
+    if (
+      action === "delete" &&
+      !window.confirm(
+        `Навсегда удалить выбранные товары (${selected.size})? Отменить это действие будет нельзя.`
+      )
+    ) {
+      return;
+    }
+
+    setBulkBusy(true);
+    setErr("");
+    setMsg("");
+    try {
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "POST",
+        headers: gate.headers(),
+        body: JSON.stringify({ ids: [...selected], action }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(data.error || "Не удалось выполнить массовое действие");
+        return;
+      }
+      const labels = {
+        publish: "Опубликовано",
+        unpublish: "Скрыто",
+        delete: "Удалено",
+      } as const;
+      setMsg(`${labels[action]} товаров: ${data.affected || selected.size}`);
+      setSelected(new Set());
+      await loadProducts();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Сеть / таймаут");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   function addSpec() {
     setForm((f) => ({
       ...f,
@@ -395,6 +464,49 @@ export default function AdminProductsPage() {
             ) : null}
           </div>
 
+          {selected.size > 0 ? (
+            <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl border border-green-200 bg-green-50 p-3">
+              <span className="mr-auto text-sm font-bold text-green-900">
+                Выбрано: {selected.size}
+              </span>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => runBulkAction("publish")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-green-200 bg-white px-3 py-2 text-xs font-bold text-green-800 disabled:opacity-50"
+              >
+                <Eye className="h-3.5 w-3.5" />
+                Показать
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => runBulkAction("unpublish")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-bold text-amber-800 disabled:opacity-50"
+              >
+                <EyeOff className="h-3.5 w-3.5" />
+                Скрыть
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => runBulkAction("delete")}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-700 disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Удалить
+              </button>
+              <button
+                type="button"
+                disabled={bulkBusy}
+                onClick={() => setSelected(new Set())}
+                className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 disabled:opacity-50"
+              >
+                Снять выбор
+              </button>
+            </div>
+          ) : null}
+
           {msg && (
             <p className="mb-3 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-800">
               {msg}
@@ -426,6 +538,18 @@ export default function AdminProductsPage() {
                 <table className="w-full min-w-[720px] text-left text-sm">
                   <thead className="border-b bg-slate-50 text-[11px] uppercase text-slate-400">
                     <tr>
+                      <th className="w-10 px-3 py-2.5">
+                        <input
+                          type="checkbox"
+                          checked={
+                            products.length > 0 &&
+                            products.every((product) => selected.has(product.id))
+                          }
+                          onChange={toggleCurrentPage}
+                          aria-label="Выбрать все товары на странице"
+                          className="h-4 w-4 rounded border-slate-300 accent-green-700"
+                        />
+                      </th>
                       <th className="px-3 py-2.5 font-bold">Товар</th>
                       <th className="px-3 py-2.5 font-bold">Категория</th>
                       <th className="px-3 py-2.5 font-bold">Артикул</th>
@@ -436,6 +560,15 @@ export default function AdminProductsPage() {
                   <tbody>
                     {products.map((p) => (
                       <tr key={p.id} className="border-b border-slate-50">
+                        <td className="px-3 py-2.5 align-middle">
+                          <input
+                            type="checkbox"
+                            checked={selected.has(p.id)}
+                            onChange={() => toggleSelected(p.id)}
+                            aria-label={`Выбрать ${p.nameRu}`}
+                            className="h-4 w-4 rounded border-slate-300 accent-green-700"
+                          />
+                        </td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-3">
                             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100">

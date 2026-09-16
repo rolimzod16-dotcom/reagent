@@ -95,6 +95,8 @@ export default function AdminCategoriesPage() {
   const [q, setQ] = useState("");
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [busyId, setBusyId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -123,6 +125,7 @@ export default function AdminCategoriesPage() {
     const data = await res.json();
     const next: CatNode[] = data.tree || [];
     setTree(next);
+    setSelected(new Set());
     setTotal(data.total || 0);
     setOpen((prev) => {
       const roots = next.map((n) => n.id);
@@ -388,6 +391,75 @@ export default function AdminCategoriesPage() {
     }
   }
 
+  function toggleSelected(id: string) {
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleVisibleSelection(ids: string[]) {
+    setSelected((previous) => {
+      const allSelected = ids.length > 0 && ids.every((id) => previous.has(id));
+      const next = new Set(previous);
+      for (const id of ids) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  }
+
+  async function runBulkAction(
+    action: "publish" | "unpublish" | "delete"
+  ) {
+    if (!adminKey || !selected.size) return;
+    if (
+      action === "delete" &&
+      !window.confirm(
+        `Обработать выбранные категории (${selected.size})? Пустые ветки удалятся навсегда, а разделы с товарами будут безопасно скрыты.`
+      )
+    ) {
+      return;
+    }
+
+    setBulkBusy(true);
+    setErr("");
+    setMsg("");
+    try {
+      const res = await fetch("/api/admin/categories/bulk", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": adminKey,
+        },
+        body: JSON.stringify({ ids: [...selected], action }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setErr(data.error || "Не удалось выполнить массовое действие");
+        return;
+      }
+      if (action === "delete") {
+        setMsg(
+          `Удалено пустых категорий: ${data.deleted || 0}. Скрыто веток с товарами: ${data.hidden || 0}.`
+        );
+      } else {
+        setMsg(
+          `${action === "publish" ? "Опубликовано" : "Скрыто"} категорий: ${data.affected || selected.size}`
+        );
+      }
+      setSelected(new Set());
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Сеть / таймаут");
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
   const allRows = flatten(tree);
   const liveCount = allRows.filter((r) => r.node.published).length;
   const hiddenCount = allRows.filter((r) => !r.node.published).length;
@@ -407,6 +479,7 @@ export default function AdminCategoriesPage() {
     query || visFilter !== "all"
       ? rows
       : rows.filter(({ node }) => isVisible(tree, node.id, open));
+  const visibleIds = visible.map(({ node }) => node.id);
 
   const parentLabel = editor?.parentId
     ? findNode(tree, editor.parentId)?.nameRu || "раздел"
@@ -462,6 +535,60 @@ export default function AdminCategoriesPage() {
             {label}
           </button>
         ))}
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600">
+          <input
+            type="checkbox"
+            checked={
+              visibleIds.length > 0 &&
+              visibleIds.every((id) => selected.has(id))
+            }
+            onChange={() => toggleVisibleSelection(visibleIds)}
+            className="h-4 w-4 rounded border-slate-300 accent-green-700"
+          />
+          Выбрать видимые ({visibleIds.length})
+        </label>
+        {selected.size > 0 ? (
+          <>
+            <span className="text-xs font-bold text-green-800">
+              Выбрано: {selected.size}
+            </span>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => runBulkAction("publish")}
+              className="inline-flex items-center gap-1 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-bold text-green-800 disabled:opacity-50"
+            >
+              <Eye className="h-3.5 w-3.5" /> На сайт
+            </button>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => runBulkAction("unpublish")}
+              className="inline-flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 disabled:opacity-50"
+            >
+              <EyeOff className="h-3.5 w-3.5" /> Скрыть
+            </button>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => runBulkAction("delete")}
+              className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 disabled:opacity-50"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Удалить
+            </button>
+            <button
+              type="button"
+              disabled={bulkBusy}
+              onClick={() => setSelected(new Set())}
+              className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-500 disabled:opacity-50"
+            >
+              Снять выбор
+            </button>
+          </>
+        ) : null}
       </div>
 
       <div className="relative mb-4 max-w-md">
@@ -626,6 +753,13 @@ export default function AdminCategoriesPage() {
                     style={{ paddingLeft: Math.min(depth, 6) * 16 }}
                   >
                     <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.has(node.id)}
+                        onChange={() => toggleSelected(node.id)}
+                        aria-label={`Выбрать ${node.nameRu}`}
+                        className="h-4 w-4 shrink-0 rounded border-slate-300 accent-green-700"
+                      />
                       {hasKids && !query ? (
                         <button
                           type="button"
