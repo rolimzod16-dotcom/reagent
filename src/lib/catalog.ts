@@ -21,6 +21,7 @@ type CatRow = {
   nameRu: string;
   nameEn: string;
   image: string | null;
+  imageCandidates: string[];
   sortOrder: number;
 };
 
@@ -53,7 +54,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
         products: {
           where: publicProductWhere,
           orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
-          take: 1,
+          take: 8,
           select: {
             slug: true,
             nameRu: true,
@@ -71,14 +72,20 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
     }),
   ]);
 
-  const all: CatRow[] = categoryRows.map(({ products, ...category }) => ({
-    ...category,
-    image: products[0]
-      ? getProductImageUrl(products[0])
-      : category.image?.startsWith("/catalog/cats/")
-        ? category.image
-        : null,
-  }));
+  const all: CatRow[] = categoryRows.map(({ products, ...category }) => {
+    const imageCandidates = [
+      ...(category.image?.startsWith("/catalog/cats/") ? [category.image] : []),
+      ...products.map(getProductImageUrl),
+    ].filter((image, index, images) =>
+      !image.startsWith("/api/product-visual") && images.indexOf(image) === index
+    );
+
+    return {
+      ...category,
+      image: imageCandidates[0] || null,
+      imageCandidates,
+    };
+  });
 
   const directCount: Record<string, number> = {};
   for (const g of grouped) {
@@ -101,7 +108,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v20"],
+  ["category-graph-v21"],
   { revalidate: 120, tags: ["catalog"] }
 );
 
@@ -134,21 +141,26 @@ function subtreeCountFrom(
   return n;
 }
 
-function subtreeImageFrom(
+function subtreeImageCandidatesFrom(
   graph: CategoryGraph,
   categoryId: string,
   visited = new Set<string>()
-): string | null {
-  if (visited.has(categoryId)) return null;
+): string[] {
+  if (visited.has(categoryId)) return [];
   visited.add(categoryId);
 
   const category = graph.all.find((item) => item.id === categoryId);
-  if (category?.image) return category.image;
+  const candidates = [...(category?.imageCandidates || [])];
   for (const childId of graph.childrenMap[categoryId] || []) {
-    const image = subtreeImageFrom(graph, childId, visited);
-    if (image) return image;
+    candidates.push(...subtreeImageCandidatesFrom(graph, childId, visited));
   }
-  return null;
+  return [...new Set(candidates)];
+}
+
+function pickUnusedImage(candidates: string[], used: Set<string>): string | null {
+  const image = candidates.find((candidate) => !used.has(candidate));
+  if (image) used.add(image);
+  return image || candidates[0] || null;
 }
 
 /** All published descendant category IDs (any depth). */
@@ -201,17 +213,22 @@ export async function getCategoryWithAncestry(slug: string) {
     : null;
   const children = graph.byParent[rootKey(category.id)] || [];
   const childIds = descendantIdsFrom(graph.childrenMap, category.id);
+  const usedChildImages = new Set<string>();
   const childrenWithCounts = children.flatMap((ch) => {
     const count = subtreeCountFrom(graph.childrenMap, graph.directCount, ch.id);
     if (count === 0) return [];
 
+    const usedGrandchildImages = new Set<string>();
     const visibleGrandchildren = (graph.byParent[rootKey(ch.id)] || [])
       .filter((g) => subtreeCountFrom(graph.childrenMap, graph.directCount, g.id) > 0)
       .map((g) => ({
         slug: g.slug,
         nameRu: g.nameRu,
         nameEn: g.nameEn,
-        image: subtreeImageFrom(graph, g.id),
+        image: pickUnusedImage(
+          subtreeImageCandidatesFrom(graph, g.id),
+          usedGrandchildImages
+        ),
       }));
 
     return [{
@@ -219,7 +236,10 @@ export async function getCategoryWithAncestry(slug: string) {
       slug: ch.slug,
       nameRu: ch.nameRu,
       nameEn: ch.nameEn,
-      image: subtreeImageFrom(graph, ch.id),
+      image: pickUnusedImage(
+        subtreeImageCandidatesFrom(graph, ch.id),
+        usedChildImages
+      ),
       parentId: ch.parentId,
       sortOrder: ch.sortOrder,
       count,

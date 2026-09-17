@@ -1,4 +1,4 @@
-/** Original REAGENT category photos (not copied from medtech / partners). */
+/** Category cover selection for the public catalog. */
 
 import uniqueJson from "./catalog-unique.json";
 
@@ -39,17 +39,13 @@ const ROOT_BY_SLUG: Record<string, string> = {
 
 const GENERIC_ROOT = new Set<string>(Object.values(FILES));
 
-function isForeignCatalogPhoto(url?: string | null): boolean {
+function isUnsuitableCategoryPhoto(url?: string | null): boolean {
   if (!url) return true;
   if (url.startsWith("/api/product-visual")) return true;
   if (url.startsWith("/catalog/cats/")) return false;
   if (url.startsWith("/catalog/")) return GENERIC_ROOT.has(url);
   const u = url.toLowerCase();
   return (
-    u.includes("medtech.tj") ||
-    u.includes("vector-best") ||
-    u.includes("deznet") ||
-    u.includes("threelab") ||
     u.includes("images.openai.com") ||
     u.includes("cloudinary.com/dmxv0xzjf") ||
     u.includes("postimg.cc")
@@ -73,11 +69,15 @@ export function defaultCatalogImage(slug: string): string {
   return FILES.diagnostics;
 }
 
-/** Prefer a unique per-slug photo; skip copied competitor URLs and shared root shots. */
+/**
+ * Prefer a curated per-slug photo, then a real product photo from that branch.
+ * Shared root artwork and generated information cards are only fallbacks: using
+ * them as child covers is what made dozens of unrelated categories look equal.
+ */
 export function catalogImage(slug: string, stored?: string | null): string {
   if (UNIQUE[slug]) return UNIQUE[slug];
   const custom = stored?.trim();
-  if (custom && !isForeignCatalogPhoto(custom) && !GENERIC_ROOT.has(custom)) {
+  if (custom && !isUnsuitableCategoryPhoto(custom) && !GENERIC_ROOT.has(custom)) {
     return custom;
   }
   return defaultCatalogImage(slug);
