@@ -75,6 +75,8 @@ export function defaultCatalogImage(slug: string): string {
  * them as child covers is what made dozens of unrelated categories look equal.
  */
 export function catalogImage(slug: string, stored?: string | null): string {
+  // Reagents branch: generated tile visual always wins (see getCategoryGraph).
+  if (stored?.startsWith("/api/product-visual")) return stored;
   if (UNIQUE[slug]) return UNIQUE[slug];
   const custom = stored?.trim();
   if (custom && !isUnsuitableCategoryPhoto(custom) && !GENERIC_ROOT.has(custom)) {

@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { publicProductWhere } from "@/lib/content-filter";
-import { getProductImageUrl } from "@/lib/product-image";
+import { generatedCategoryImageUrl, getProductImageUrl } from "@/lib/product-image";
 
 export type CategoryTreeNode = {
   id: string;
@@ -87,6 +87,23 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
     };
   });
 
+  // «Реагенты» and all its subcategories: uniform generated tile visuals.
+  const reagentRoot = all.find((c) => c.slug === REAGENTS_ROOT_SLUG);
+  if (reagentRoot) {
+    const kids: Record<string, string[]> = {};
+    for (const c of all) if (c.parentId) (kids[c.parentId] ||= []).push(c.id);
+    const reagentIds = new Set([
+      reagentRoot.id,
+      ...descendantIdsFrom(kids, reagentRoot.id),
+    ]);
+    for (const c of all) {
+      if (!reagentIds.has(c.id)) continue;
+      const tile = generatedCategoryImageUrl(c);
+      c.image = tile;
+      c.imageCandidates = [tile];
+    }
+  }
+
   const directCount: Record<string, number> = {};
   for (const g of grouped) {
     directCount[g.categoryId] = g._count._all;
@@ -108,7 +125,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
 /** Cached graph — avoids hammering Postgres on every catalog hit. */
 const getCachedCategoryGraph = unstable_cache(
   async () => fetchCategoryGraph(),
-  ["category-graph-v21"],
+  ["category-graph-v22"],
   { revalidate: 120, tags: ["catalog"] }
 );
 

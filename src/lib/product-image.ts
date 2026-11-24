@@ -57,6 +57,20 @@ export function generatedProductImageUrl(product: {
   return `/api/product-visual?${params.toString()}`;
 }
 
+/** Generated tile visual for a category (icon only, no caption box). */
+export function generatedCategoryImageUrl(category: {
+  slug: string;
+  nameRu: string;
+  nameEn: string;
+}): string {
+  const params = new URLSearchParams({
+    slug: category.slug,
+    name: category.nameRu || category.nameEn || "REAGENT",
+    variant: "tile",
+  });
+  return `/api/product-visual?${params.toString()}`;
+}
+
 export function getProductImageUrl(product: {
   slug: string;
   nameRu: string;
