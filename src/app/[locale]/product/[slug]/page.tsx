@@ -15,6 +15,7 @@ import { SITE_DOMAIN } from "@/lib/site";
 import { displayPrice } from "@/lib/price";
 import { JsonLd } from "@/components/JsonLd";
 import { generatedProductImageUrl, getProductImageUrl } from "@/lib/product-image";
+import { getReagentCategoryIds } from "@/lib/catalog";
 import { ResilientImage } from "@/components/ResilientImage";
 
 export const revalidate = 3600;
@@ -80,7 +81,10 @@ export default async function ProductPage({
 
   const name = field(locale, product.nameRu, product.nameEn);
   const img = product.images[0];
-  const imageUrl = getProductImageUrl(product);
+  const reagentIds = await getReagentCategoryIds();
+  const imageUrl = getProductImageUrl(product, {
+    forceGenerated: reagentIds.has(product.categoryId),
+  });
   const fallbackImageUrl = generatedProductImageUrl(product);
 
   const jsonLd = productJsonLd({

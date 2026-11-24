@@ -75,7 +75,7 @@ async function fetchCategoryGraph(): Promise<CategoryGraph> {
   const all: CatRow[] = categoryRows.map(({ products, ...category }) => {
     const imageCandidates = [
       ...(category.image?.startsWith("/catalog/cats/") ? [category.image] : []),
-      ...products.map(getProductImageUrl),
+      ...products.map((p) => getProductImageUrl(p)),
     ].filter((image, index, images) =>
       !image.startsWith("/api/product-visual") && images.indexOf(image) === index
     );
@@ -169,6 +169,20 @@ export async function getDescendantCategoryIds(
 ): Promise<string[]> {
   const graph = await getCachedCategoryGraph();
   return descendantIdsFrom(graph.childrenMap, rootId);
+}
+
+/** Root slug of the «Реагенты» catalog section. */
+export const REAGENTS_ROOT_SLUG = "reaktivy_laboratornykh_issledovaniy";
+
+/**
+ * IDs of the «Реагенты» category and all its subcategories (any depth).
+ * Products here always use the generated product visual instead of photos.
+ */
+export async function getReagentCategoryIds(): Promise<Set<string>> {
+  const graph = await getCachedCategoryGraph();
+  const root = graph.all.find((c) => c.slug === REAGENTS_ROOT_SLUG);
+  if (!root) return new Set();
+  return new Set([root.id, ...descendantIdsFrom(graph.childrenMap, root.id)]);
 }
 
 function buildTreeNodes(

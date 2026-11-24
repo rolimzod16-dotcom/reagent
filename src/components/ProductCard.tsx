@@ -5,12 +5,14 @@ import { AddToCartButton } from "./AddToCartButton";
 import { displayPrice } from "@/lib/price";
 import { generatedProductImageUrl, getProductImageUrl } from "@/lib/product-image";
 import { ResilientImage } from "./ResilientImage";
+import { getReagentCategoryIds } from "@/lib/catalog";
 
 type ProductCardProps = {
   locale: Locale;
   product: {
     id: string;
     slug: string;
+    categoryId?: string;
     sku: string | null;
     model: string | null;
     nameRu: string;
@@ -26,11 +28,13 @@ type ProductCardProps = {
   index?: number;
 };
 
-export function ProductCard({ locale, product }: ProductCardProps) {
+export async function ProductCard({ locale, product }: ProductCardProps) {
+  const reagentIds = await getReagentCategoryIds();
+  const isReagent = !!product.categoryId && reagentIds.has(product.categoryId);
   const name = field(locale, product.nameRu, product.nameEn);
   const short = field(locale, product.shortRu, product.shortEn);
   const img = product.images[0];
-  const imageUrl = getProductImageUrl(product);
+  const imageUrl = getProductImageUrl(product, { forceGenerated: isReagent });
   const fallbackImageUrl = generatedProductImageUrl(product);
   const price = displayPrice(product, locale);
 

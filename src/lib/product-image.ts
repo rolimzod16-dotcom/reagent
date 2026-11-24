@@ -62,9 +62,10 @@ export function getProductImageUrl(product: {
   nameRu: string;
   nameEn: string;
   images: { url: string }[];
-}): string {
+}, options: { forceGenerated?: boolean } = {}): string {
   const source = product.images[0]?.url?.trim();
   if (
+    !options.forceGenerated &&
     source &&
     !duplicatedSourceImages.has(normalizeImageUrl(source)) &&
     !isUnreliableStockImage(source)
